@@ -1,7 +1,175 @@
 {% extends "core/base.html" %}
 
+{% block title %}OpenPCB — The open library for PCB designs{% endblock %}
+
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-  <p class="text-gray-500">Landing page coming in Sprint 3.</p>
-</div>
+
+<!-- ── Hero ──────────────────────────────────────────────────────── -->
+<section class="relative overflow-hidden border-b border-gray-200 dark:border-gray-800">
+
+  <!-- Stronger trace pattern in hero background -->
+  <div class="absolute inset-0 pointer-events-none" style="
+    background-image:
+      repeating-linear-gradient(-45deg, transparent 0px, transparent 18px, rgba(26,158,79,0.08) 18px, rgba(26,158,79,0.08) 19px),
+      repeating-linear-gradient( 45deg, transparent 0px, transparent 18px, rgba(26,158,79,0.05) 18px, rgba(26,158,79,0.05) 19px);
+  "></div>
+
+  <!-- PCB corner decoration — top right -->
+  <svg class="absolute top-0 right-0 w-64 h-64 text-brand-600 dark:text-brand-700 opacity-10 pointer-events-none" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M200 40 L160 40 L130 70 L130 130 L100 160 L40 160"/>
+    <path d="M200 80 L180 80 L140 120 L80 120 L60 140 L60 200"/>
+    <circle cx="160" cy="40" r="5" fill="currentColor"/>
+    <circle cx="130" cy="130" r="5" fill="currentColor"/>
+    <circle cx="80" cy="120" r="5" fill="currentColor"/>
+  </svg>
+
+  <!-- PCB corner decoration — bottom left -->
+  <svg class="absolute bottom-0 left-0 w-48 h-48 text-brand-600 dark:text-brand-700 opacity-10 pointer-events-none" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M0 160 L40 160 L70 130 L70 70 L100 40 L160 40"/>
+    <path d="M0 120 L20 120 L60 80 L120 80 L140 60 L140 0"/>
+    <circle cx="40" cy="160" r="5" fill="currentColor"/>
+    <circle cx="70" cy="70"  r="5" fill="currentColor"/>
+    <circle cx="120" cy="80" r="5" fill="currentColor"/>
+  </svg>
+
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
+
+    <div class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400 mb-6 px-3 py-1.5 bg-brand-50 dark:bg-brand-900 chamfer-sm ds-outline-brand">
+      Open source · Community driven · Free to use
+    </div>
+
+    <h1 class="text-5xl sm:text-6xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-6 leading-tight">
+      The open library for<br>
+      <span class="text-brand-600 dark:text-brand-400">PCB designs</span>
+    </h1>
+
+    <p class="text-xl text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-10">
+      Browse, download, and share open-source PCB designs — Gerbers, KiCad files, schematics, and BOMs — all in one place. Order direct from your fab when you're ready.
+    </p>
+
+    <div class="flex flex-wrap items-center justify-center gap-4">
+      <a href="/explore/"
+         class="px-8 py-3 text-base font-semibold bg-brand-600 hover:bg-brand-700 text-white chamfer transition-colors">
+        Explore Designs
+      </a>
+      <a href="#"
+         class="px-8 py-3 text-base font-semibold bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 chamfer ds-outline transition-colors">
+        Upload Your Board
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── How it works ───────────────────────────────────────────────── -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+
+  <h2 class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-12">How it works</h2>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
+
+    <!-- Step 1 -->
+    <div class="flex flex-col items-center text-center">
+      <div class="w-14 h-14 bg-brand-600 chamfer flex items-center justify-center mb-4">
+        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+        </svg>
+      </div>
+      <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-2">Upload your design</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Share your Gerbers, KiCad project, schematic, and BOM. All major formats supported.</p>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="flex flex-col items-center text-center">
+      <div class="w-14 h-14 bg-brand-600 chamfer flex items-center justify-center mb-4">
+        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+      </div>
+      <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-2">Share with the community</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Your design gets a public page with a file browser, download counter, and comments.</p>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="flex flex-col items-center text-center">
+      <div class="w-14 h-14 bg-gray-200 dark:bg-gray-800 chamfer flex items-center justify-center mb-4 relative">
+        <svg class="w-7 h-7 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+        <span class="absolute -top-1 -right-1 text-xs font-bold px-1.5 py-0.5 bg-amber-400 text-amber-900 chamfer-sm leading-none">Soon</span>
+      </div>
+      <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-2">Order from your fab</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 text-sm">One-click ordering via PCBWay and JLCPCB — coming in a future release.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Why OpenPCB ────────────────────────────────────────────────── -->
+<section class="border-t border-gray-200 dark:border-gray-800">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">Better than emailing Gerbers around</h2>
+        <p class="text-gray-500 dark:text-gray-400 mb-8">Open hardware deserves a real home. OpenPCB gives your PCB designs a permanent, shareable page — not a ZIP in someone's downloads folder.</p>
+
+        <ul class="space-y-4">
+          {% for item in why_items %}
+          <li class="flex items-start gap-3">
+            <div class="w-5 h-5 bg-brand-600 chamfer-sm flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ item.title }}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">{{ item.body }}</p>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Stats panel -->
+      <div class="grid grid-cols-2 gap-4">
+        {% for stat in stats %}
+        <div class="bg-white dark:bg-gray-900 p-6 chamfer-lg ds-outline text-center">
+          <p class="text-3xl font-extrabold text-brand-600 dark:text-brand-400 mb-1">{{ stat.value }}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ stat.label }}</p>
+        </div>
+        {% endfor %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── Project preview strip ─────────────────────────────────────── -->
+<section class="border-t border-gray-200 dark:border-gray-800">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+
+    <div class="flex items-center justify-between mb-8">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Featured designs</h2>
+      <a href="/explore/" class="text-sm font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors flex items-center gap-1">
+        See all designs
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for project in projects|slice:":3" %}
+        {% include "core/_card.html" %}
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+
 {% endblock %}

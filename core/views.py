@@ -120,8 +120,35 @@ PROJECTS = [
 ]
 
 
+WHY_ITEMS = [
+    {
+        "title": "All your files in one place",
+        "body": "Gerbers, KiCad project, schematic, BOM — one URL, all versioned together.",
+    },
+    {
+        "title": "Open licenses, clearly stated",
+        "body": "Every design shows its license upfront so you know exactly what you can do with it.",
+    },
+    {
+        "title": "Designed for the hardware community",
+        "body": "Not a generic file host. Built around how EE and maker projects actually work.",
+    },
+]
+
+STATS = [
+    {"value": "1,200+", "label": "Designs shared"},
+    {"value": "48",     "label": "Contributors"},
+    {"value": "9,400+", "label": "Downloads"},
+    {"value": "100%",   "label": "Open source"},
+]
+
+
 def index(request):
-    return render(request, 'core/index.html', {'projects': PROJECTS})
+    return render(request, 'core/index.html', {
+        'projects':   PROJECTS,
+        'why_items':  WHY_ITEMS,
+        'stats':      STATS,
+    })
 
 
 FILTER_LABELS = ['All', 'Microcontrollers', 'Power', 'RF', 'Sensors']
