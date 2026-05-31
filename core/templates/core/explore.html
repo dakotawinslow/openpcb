@@ -14,9 +14,11 @@
   <!-- Filter buttons (dead links for now — filtering comes in a later phase) -->
   <div class="flex items-center gap-2 flex-wrap mb-8">
     {% for label in filter_labels %}
-    <button class="px-4 py-1.5 text-sm chamfer-sm {% if forloop.first %}bg-brand-600 text-white font-medium cursor-default{% else %}border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-brand-500 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400 transition-colors{% endif %}">
-      {{ label }}
-    </button>
+    {% if forloop.first %}
+    <button class="px-4 py-1.5 text-sm chamfer-sm bg-brand-600 text-white font-medium cursor-default">{{ label }}</button>
+    {% else %}
+    <button class="px-4 py-1.5 text-sm chamfer-sm bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors ds-outline">{{ label }}</button>
+    {% endif %}
     {% endfor %}
   </div>
 

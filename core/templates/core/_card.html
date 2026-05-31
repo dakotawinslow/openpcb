@@ -1,8 +1,5 @@
 <a href="{% url 'project_detail' project.id %}"
-   class="group block bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 overflow-hidden chamfer-lg hover:-translate-y-0.5 transition-all duration-200"
-   style="filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.10));"
-   onmouseenter="this.style.filter='drop-shadow(0 4px 10px rgb(0 0 0 / 0.15))'"
-   onmouseleave="this.style.filter='drop-shadow(0 1px 3px rgb(0 0 0 / 0.10))'">
+   class="group block bg-white dark:bg-gray-900 overflow-hidden chamfer-lg ds-card hover:-translate-y-0.5 transition-transform duration-200">
 
   <!-- Thumbnail -->
   <div class="aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800">
@@ -45,7 +42,7 @@
     <!-- Tags -->
     <div class="flex flex-wrap gap-1">
       {% for tag in project.tags|slice:":3" %}
-      <span class="text-xs bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-400 px-2 py-0.5 border border-brand-100 dark:border-brand-800 chamfer-sm">
+      <span class="text-xs bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-400 px-2 py-0.5 chamfer-sm ds-outline-brand">
         {{ tag }}
       </span>
       {% endfor %}

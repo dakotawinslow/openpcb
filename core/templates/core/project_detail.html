@@ -20,7 +20,6 @@
     <!-- Meta row: author · date · license -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
 
-      <!-- Author avatar + handle -->
       <div class="flex items-center gap-1.5">
         <div class="w-6 h-6 bg-brand-100 dark:bg-brand-900 flex items-center justify-center flex-shrink-0 chamfer-sm">
           <span class="text-brand-700 dark:text-brand-400 text-xs font-semibold leading-none">{{ project.author|slice:":1"|upper }}</span>
@@ -32,15 +31,15 @@
       <span class="text-sm text-gray-500 dark:text-gray-400">{{ project.uploaded }}</span>
       <span class="text-gray-300 dark:text-gray-600">·</span>
 
-      <!-- License badge -->
-      <span class="text-xs font-medium px-2 py-0.5 bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-400 border border-brand-100 dark:border-brand-800 chamfer-sm">
+      <span class="text-xs font-medium px-2 py-0.5 bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-400 chamfer-sm ds-outline-brand">
         {{ project.license }}
       </span>
     </div>
 
-    <!-- Stats row: stars + downloads -->
+    <!-- Stats: star button + download count -->
     <div class="flex items-center gap-4">
-      <button class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-brand-500 hover:text-brand-600 dark:hover:text-brand-400 transition-colors chamfer">
+
+      <button class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors chamfer ds-outline">
         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
           <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
         </svg>
@@ -64,16 +63,16 @@
     <!-- Left: description + tags (2/3) -->
     <div class="lg:col-span-2 space-y-6">
 
-      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 chamfer-lg">
+      <div class="bg-white dark:bg-gray-900 p-6 chamfer-lg ds-outline">
         <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">About</h2>
         <p class="text-gray-700 dark:text-gray-300 leading-relaxed">{{ project.description }}</p>
       </div>
 
-      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-6 chamfer-lg">
+      <div class="bg-white dark:bg-gray-900 p-6 chamfer-lg ds-outline">
         <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">Tags</h2>
         <div class="flex flex-wrap gap-2">
           {% for tag in project.tags %}
-          <span class="text-sm bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-400 px-3 py-1 border border-brand-100 dark:border-brand-800 chamfer-sm">
+          <span class="text-sm bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-400 px-3 py-1 chamfer-sm ds-outline-brand">
             {{ tag }}
           </span>
           {% endfor %}
@@ -84,7 +83,7 @@
 
     <!-- Right: file list (1/3) -->
     <div class="lg:col-span-1">
-      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 chamfer-lg overflow-hidden">
+      <div class="bg-white dark:bg-gray-900 chamfer-lg ds-outline overflow-hidden">
 
         <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
           <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Files</h2>
@@ -94,33 +93,28 @@
           {% for file in project.files %}
           <li class="flex items-center gap-3 px-5 py-3">
 
-            <!-- File icon -->
             <svg class="w-8 h-8 flex-shrink-0 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
 
-            <!-- Name + type + size -->
             <div class="flex-1 min-w-0">
               <p class="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{{ file.name }}</p>
               <div class="flex items-center gap-2 mt-0.5">
-                <!-- Type badge with color per type -->
                 <span class="text-xs font-medium px-1.5 py-0.5 chamfer-sm
-                  {% if file.type == 'Gerber' %}bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-400 border border-brand-100 dark:border-brand-800
-                  {% elif file.type == 'KiCad PCB' %}bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-900
-                  {% elif file.type == 'BOM' %}bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-900
-                  {% elif file.type == 'Schematic' %}bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-400 border border-violet-100 dark:border-violet-900
-                  {% else %}bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700
-                  {% endif %}">
+                  {% if file.type == 'Gerber' %}bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-400 ds-outline-brand
+                  {% elif file.type == 'KiCad PCB' %}bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400
+                  {% elif file.type == 'BOM' %}bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400
+                  {% elif file.type == 'Schematic' %}bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-400
+                  {% else %}bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400{% endif %}">
                   {{ file.type }}
                 </span>
                 <span class="text-xs text-gray-400 dark:text-gray-500">{{ file.size }}</span>
               </div>
             </div>
 
-            <!-- Download button -->
             <a href="#"
-               class="flex-shrink-0 flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 border border-brand-300 dark:border-brand-700 text-brand-600 dark:text-brand-400 hover:bg-brand-600 hover:text-white dark:hover:bg-brand-600 dark:hover:border-brand-600 transition-colors chamfer-sm">
+               class="flex-shrink-0 flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 bg-white dark:bg-gray-900 text-brand-600 dark:text-brand-400 hover:bg-brand-600 hover:text-white dark:hover:bg-brand-600 transition-colors chamfer-sm ds-outline-brand">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -138,11 +132,10 @@
   </div>
 
   <!-- ── Order This Board ───────────────────────────────────────── -->
-  <div class="mb-12">
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-8 chamfer-lg opacity-60 relative">
+  <div class="mb-12 opacity-60">
+    <div class="bg-white dark:bg-gray-900 p-8 chamfer-lg ds-outline relative">
 
-      <!-- Coming soon badge -->
-      <span class="absolute top-4 right-4 text-xs font-semibold px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 chamfer-sm">
+      <span class="absolute top-4 right-4 text-xs font-semibold px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 chamfer-sm ds-outline">
         Coming soon
       </span>
 
@@ -151,9 +144,8 @@
 
       <div class="flex flex-wrap gap-4">
 
-        <!-- PCBWay -->
-        <div class="flex items-center gap-3 px-6 py-4 border border-gray-200 dark:border-gray-700 chamfer cursor-not-allowed">
-          <div class="w-8 h-8 bg-blue-600 chamfer-sm flex items-center justify-center">
+        <div class="flex items-center gap-3 px-6 py-4 bg-white dark:bg-gray-900 chamfer ds-outline cursor-not-allowed">
+          <div class="w-8 h-8 bg-blue-600 chamfer-sm flex items-center justify-center flex-shrink-0">
             <span class="text-white text-xs font-bold">PW</span>
           </div>
           <div>
@@ -162,9 +154,8 @@
           </div>
         </div>
 
-        <!-- JLCPCB -->
-        <div class="flex items-center gap-3 px-6 py-4 border border-gray-200 dark:border-gray-700 chamfer cursor-not-allowed">
-          <div class="w-8 h-8 bg-red-600 chamfer-sm flex items-center justify-center">
+        <div class="flex items-center gap-3 px-6 py-4 bg-white dark:bg-gray-900 chamfer ds-outline cursor-not-allowed">
+          <div class="w-8 h-8 bg-red-600 chamfer-sm flex items-center justify-center flex-shrink-0">
             <span class="text-white text-xs font-bold">JL</span>
           </div>
           <div>

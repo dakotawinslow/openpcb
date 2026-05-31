@@ -49,30 +49,25 @@
       }
     }
 
-    /* 45° chamfered corners — use instead of rounded-* classes */
-    .chamfer-sm {
-      clip-path: polygon(
-        5px 0%, calc(100% - 5px) 0%,
-        100% 5px, 100% calc(100% - 5px),
-        calc(100% - 5px) 100%, 5px 100%,
-        0% calc(100% - 5px), 0% 5px
-      );
-    }
-    .chamfer {
-      clip-path: polygon(
-        8px 0%, calc(100% - 8px) 0%,
-        100% 8px, 100% calc(100% - 8px),
-        calc(100% - 8px) 100%, 8px 100%,
-        0% calc(100% - 8px), 0% 8px
-      );
-    }
-    .chamfer-lg {
-      clip-path: polygon(
-        14px 0%, calc(100% - 14px) 0%,
-        100% 14px, 100% calc(100% - 14px),
-        calc(100% - 14px) 100%, 14px 100%,
-        0% calc(100% - 14px), 0% 14px
-      );
+    /* 45° chamfered corners — use instead of rounded-* classes.
+       clip-path clips everything including CSS borders, so never use border-*
+       on a chamfered element. Use drop-shadow-outline-* instead — drop-shadow
+       is composited AFTER clip-path and correctly traces the chamfer shape. */
+    .chamfer-sm { clip-path: polygon(5px  0%, calc(100% - 5px)  0%, 100%  5px, 100% calc(100% -  5px), calc(100% -  5px) 100%,  5px 100%, 0% calc(100% -  5px), 0%  5px); }
+    .chamfer    { clip-path: polygon(8px  0%, calc(100% - 8px)  0%, 100%  8px, 100% calc(100% -  8px), calc(100% -  8px) 100%,  8px 100%, 0% calc(100% -  8px), 0%  8px); }
+    .chamfer-lg { clip-path: polygon(14px 0%, calc(100% - 14px) 0%, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0% calc(100% - 14px), 0% 14px); }
+
+    /* Chamfer-following outlines via drop-shadow (replaces border-* on chamfered elements).
+       Combine with an elevation shadow by chaining multiple drop-shadow() values. */
+    .ds-outline       { filter: drop-shadow(0 0 0.75px #9ca3af); }
+    .ds-outline-brand { filter: drop-shadow(0 0 0.75px #86efac); }
+    .ds-card          { filter: drop-shadow(0 0 0.75px #d1d5db) drop-shadow(0 2px 6px rgba(0,0,0,0.07)); transition: filter 0.2s; }
+    .ds-card:hover    { filter: drop-shadow(0 0 0.75px #d1d5db) drop-shadow(0 6px 14px rgba(0,0,0,0.12)); }
+    @media (prefers-color-scheme: dark) {
+      .ds-outline       { filter: drop-shadow(0 0 0.75px #4b5563); }
+      .ds-outline-brand { filter: drop-shadow(0 0 0.75px #166534); }
+      .ds-card          { filter: drop-shadow(0 0 0.75px #374151) drop-shadow(0 2px 6px rgba(0,0,0,0.3)); transition: filter 0.2s; }
+      .ds-card:hover    { filter: drop-shadow(0 0 0.75px #374151) drop-shadow(0 6px 14px rgba(0,0,0,0.4)); }
     }
   </style>
 
