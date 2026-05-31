@@ -40,36 +40,33 @@
      id="layer1">
     <path
        id="rect1"
-       style="stroke-width:1;fill:#38c138;fill-opacity:1;stroke:none;stroke-opacity:1;stroke-dasharray:none;stroke-linejoin:miter;paint-order:normal"
+       style="stroke-width:1;fill:#249a24;fill-opacity:1;stroke:none;stroke-opacity:1;stroke-dasharray:none;stroke-linejoin:miter;paint-order:normal"
        d="m 8,0 h 84 l 8,8 0,84 -8,8 H 8 L 0,92 V 8 Z"
        sodipodi:nodetypes="ccccccccc" />
-    <circle
-       style="fill:#c4722a;fill-opacity:1;stroke:none;stroke-width:1;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
+    <path
        id="path1"
-       cx="20"
+       style="fill:#a85e22;stroke:#a85e22;stroke-width:0.864195;stroke-opacity:1"
+       d="m 67.283729,15.432097 a 8.6419449,8.6419449 0 0 0 -8.367215,6.481734 H 36.142472 L 21.913831,36.142472 V 41.63234 A 8.6419449,8.6419449 0 0 0 15.432097,50 a 8.6419449,8.6419449 0 0 0 8.641865,8.641864 8.6419449,8.6419449 0 0 0 8.367661,-6.481286 H 53.4262 l 11.696951,11.696951 v 3.700849 a 8.6419449,8.6419449 0 0 0 -6.481287,8.367214 8.6419449,8.6419449 0 0 0 8.641865,8.642311 8.6419449,8.6419449 0 0 0 8.641863,-8.642311 8.6419449,8.6419449 0 0 0 -6.481286,-8.367214 V 62.06851 L 55.215665,47.839423 H 32.441623 A 8.6419449,8.6419449 0 0 0 26.23454,41.63234 V 37.931491 L 37.931491,26.23454 h 20.985023 a 8.6419449,8.6419449 0 0 0 8.367215,6.481732 8.6419449,8.6419449 0 0 0 8.641863,-8.64231 8.6419449,8.6419449 0 0 0 -8.641863,-8.641865 z" />
+    <ellipse
+       style="fill:#a85e22;fill-opacity:1;stroke:#a85e22;stroke-width:1.16072;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
+       id="path4"
+       cx="67.5"
+       cy="24"
+       rx="11.91964"
+       ry="11.919641" />
+    <ellipse
+       style="fill:#a85e22;fill-opacity:1;stroke:#a85e22;stroke-width:1.16072;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
+       id="path4-3"
+       cx="67.5"
+       cy="76"
+       rx="11.91964"
+       ry="11.919641" />
+    <ellipse
+       style="fill:#a85e22;fill-opacity:1;stroke:#a85e22;stroke-width:1.16072;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
+       id="path4-6"
+       cx="24"
        cy="50"
-       r="10" />
-    <circle
-       style="fill:#c4722a;fill-opacity:1;stroke:none;stroke-width:1;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
-       id="path1-3"
-       cx="70"
-       cy="80"
-       r="10" />
-    <circle
-       style="fill:#c4722a;fill-opacity:1;stroke:none;stroke-width:1;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
-       id="path1-3-1"
-       cx="70"
-       cy="20"
-       r="10" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#c4722a;stroke-width:5;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
-       d="M 20,50 H 55 L 70,65 V 80"
-       id="path2"
-       sodipodi:nodetypes="cccc" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#c4722a;stroke-width:5;stroke-linejoin:miter;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
-       d="M 20,50 V 35 L 35,20 h 35"
-       id="path3"
-       sodipodi:nodetypes="cccc" />
+       rx="11.91964"
+       ry="11.919641" />
   </g>
 </svg>
