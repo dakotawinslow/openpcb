@@ -1,4 +1,5 @@
 {% extends "core/base.html" %}
+{% load static %}
 
 {% block title %}{{ project.title }} — OpenPCB{% endblock %}
 
@@ -56,6 +57,63 @@
       </span>
     </div>
   </div>
+
+  <!-- ── Photo gallery ────────────────────────────────────────────── -->
+  {% if project.images %}
+  <div class="mb-8">
+
+    <!-- Main image -->
+    <div class="chamfer-lg overflow-hidden bg-gray-100 dark:bg-gray-800 mb-2 cursor-zoom-in ds-outline"
+         style="max-height: 480px;"
+         onclick="galleryOpenLightbox()">
+      <img id="gallery-main"
+           src="{% static project.images.0 %}"
+           alt="{{ project.title }}"
+           class="w-full h-full object-contain" style="max-height: 480px;">
+    </div>
+
+    <!-- Thumbnails -->
+    <div class="grid grid-cols-4 gap-2">
+      {% for img in project.images %}
+      <div class="gallery-thumb chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer transition-all ds-outline {% if forloop.first %}opacity-100{% else %}opacity-50 hover:opacity-80{% endif %}"
+           onclick="gallerySelect(this, '{% static img %}')">
+        <img src="{% static img %}" alt="Photo {{ forloop.counter }}" class="w-full aspect-square object-cover">
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <!-- Lightbox overlay -->
+  <div id="gallery-lightbox"
+       class="hidden fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-8 cursor-zoom-out"
+       onclick="galleryCloseLightbox()">
+    <img id="gallery-lightbox-img" src="" alt="" class="max-w-full max-h-full object-contain">
+  </div>
+
+  <script>
+    const galleryMain    = document.getElementById('gallery-main');
+    const galleryLightbox    = document.getElementById('gallery-lightbox');
+    const galleryLightboxImg = document.getElementById('gallery-lightbox-img');
+
+    function gallerySelect(thumb, src) {
+      galleryMain.src = src;
+      document.querySelectorAll('.gallery-thumb').forEach(t => {
+        t.classList.add('opacity-50');
+        t.classList.remove('opacity-100');
+      });
+      thumb.classList.remove('opacity-50');
+      thumb.classList.add('opacity-100');
+    }
+    function galleryOpenLightbox() {
+      galleryLightboxImg.src = galleryMain.src;
+      galleryLightbox.classList.remove('hidden');
+    }
+    function galleryCloseLightbox() {
+      galleryLightbox.classList.add('hidden');
+    }
+  </script>
+  {% endif %}
 
   <!-- ── Two-column body ────────────────────────────────────────── -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
