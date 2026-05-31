@@ -188,8 +188,19 @@ using `clip-path` utility classes defined in `base.html`:
 | `chamfer` | 8px | Standard buttons, inputs |
 | `chamfer-lg` | 14px | Cards, panels, large containers |
 
-Because `clip-path` clips box shadows, use CSS `filter: drop-shadow()` instead
-of Tailwind `shadow-*` classes on elements that need a shadow.
+**Never use `border-*` or `shadow-*` Tailwind classes on chamfered elements.**
+`clip-path` clips everything including CSS borders and box-shadows, so they
+will not follow the chamfer shape.
+
+Instead, use the `ds-*` drop-shadow utilities defined in `base.html`. Because
+`filter: drop-shadow()` is composited *after* `clip-path`, it correctly traces
+the chamfer outline:
+
+| Class | Use for |
+|---|---|
+| `ds-outline` | Panels, outlined buttons — subtle gray border glow |
+| `ds-outline-brand` | Tags, badges, brand-coloured buttons |
+| `ds-card` | Cards — includes both border glow and elevation shadow with hover state |
 
 ### Soldermask Green Theme
 
@@ -273,6 +284,8 @@ demo phase, flag it and confirm before proceeding.
 | 2026-05-30 | Sprint 0 complete | Django scaffold running in Docker at localhost:8000. Repo live at github.com/dakotawinslow/openpcb. |
 | 2026-05-31 | Corner style | 45° chamfered corners (clip-path) chosen over rounded corners as a core PCB-aesthetic motif. Applied to all UI elements. Never use rounded-* classes. |
 | 2026-05-31 | Sprints 1–4 complete | Base template, seed data, explore page, and card component done. Sprint 3 (landing page) intentionally deferred — doing detail page next. |
+| 2026-05-31 | Sprint 5 complete | Project detail page done. |
+| 2026-05-31 | Chamfer borders | CSS border-* is clipped by clip-path and cannot follow the chamfer. Use filter: drop-shadow() (ds-* utilities) instead — it composites after clip-path and traces the shape correctly. |
 ```
 
 ---
