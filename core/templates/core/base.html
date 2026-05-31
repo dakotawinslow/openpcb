@@ -51,15 +51,16 @@
     }
   </script>
 
-  <!-- Brand colour tokens — single source of truth for CSS that can't use Tailwind classes.
-       When updating the palette, change these AND the Tailwind config above. -->
+  <!-- CSS colour tokens for features that can't use Tailwind classes (drop-shadows, trace bg).
+       MUST stay in sync with the Tailwind config above — hex equivalents shown for cross-checking.
+       To update: change the hex in Tailwind config, then update the RGB values here to match. -->
   <style>
     :root {
-      --brand-300-rgb:  108, 212, 108;  /* brand-300: light kelly, used for brand outlines */
-      --brand-600-rgb:  26,  122, 26;   /* brand-600: deep kelly, primary action + trace pattern */
-      --brand-700-rgb:  18,  92,  18;   /* brand-700: dark kelly, dark-mode brand outlines */
-      --copper-500-rgb: 196, 114, 42;   /* copper-500: rich copper accent */
-      --copper-600-rgb: 168, 94,  34;   /* copper-600: deep copper, hover state */
+      --brand-300-rgb:  108, 212, 108;  /* = #6cd46c — brand-300 */
+      --brand-600-rgb:  26,  122, 26;   /* = #1a7a1a — brand-600 */
+      --brand-700-rgb:  18,  92,  18;   /* = #125c12 — brand-700 */
+      --copper-500-rgb: 196, 114, 42;   /* = #c4722a — copper-500 */
+      --copper-600-rgb: 168, 94,  34;   /* = #a85e22 — copper-600 */
     }
 
     /* Subtle 45° PCB trace — references brand-600 so it shifts with the palette */
