@@ -62,22 +62,41 @@
   {% if project.images %}
   <div class="mb-8">
 
-    <!-- Main image -->
-    <div class="chamfer-lg overflow-hidden bg-gray-100 dark:bg-gray-800 mb-2 cursor-zoom-in ds-outline"
-         style="max-height: 480px;"
-         onclick="galleryOpenLightbox()">
-      <img id="gallery-main"
-           src="{% static project.images.0 %}"
-           alt="{{ project.title }}"
-           class="w-full h-full object-contain" style="max-height: 480px;">
+    <!-- Main image + prev/next buttons (wrapper is relative so buttons overlay the image
+         but live outside the clip-path container and won't get clipped) -->
+    <div class="relative mb-2">
+
+      <div class="chamfer-lg overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-zoom-in ds-outline"
+           style="max-height: 480px;"
+           onclick="galleryOpenLightbox()">
+        <img id="gallery-main"
+             src="{% static project.images.0 %}"
+             alt="{{ project.title }}"
+             class="w-full h-full object-contain" style="max-height: 480px;">
+      </div>
+
+      <button onclick="galleryPrev()"
+              class="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-20 h-20 bg-black/40 hover:bg-black/70 text-white flex items-center justify-center chamfer transition-colors">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+
+      <button onclick="galleryNext()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-20 h-20 bg-black/40 hover:bg-black/70 text-white flex items-center justify-center chamfer transition-colors">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+
     </div>
 
-    <!-- Thumbnails -->
-    <div class="grid grid-cols-4 gap-2">
+    <!-- Thumbnails — horizontally scrollable strip -->
+    <div class="flex gap-2 overflow-x-auto pb-1 gallery-strip">
       {% for img in project.images %}
-      <div class="gallery-thumb chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer transition-all ds-outline {% if forloop.first %}opacity-100{% else %}opacity-50 hover:opacity-80{% endif %}"
-           onclick="gallerySelect(this, '{% static img %}')">
-        <img src="{% static img %}" alt="Photo {{ forloop.counter }}" class="w-full aspect-square object-cover">
+      <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer transition-opacity ds-outline {% if forloop.first %}opacity-100{% else %}opacity-50 hover:opacity-80{% endif %}"
+           onclick="galleryGoto({{ forloop.counter0 }})">
+        <img src="{% static img %}" alt="Photo {{ forloop.counter }}" class="w-full h-full object-cover">
       </div>
       {% endfor %}
     </div>
@@ -92,19 +111,25 @@
   </div>
 
   <script>
-    const galleryMain    = document.getElementById('gallery-main');
+    const galleryImages = [{% for img in project.images %}"{% static img %}"{% if not forloop.last %},{% endif %}{% endfor %}];
+    let galleryIndex = 0;
+
+    const galleryMain        = document.getElementById('gallery-main');
     const galleryLightbox    = document.getElementById('gallery-lightbox');
     const galleryLightboxImg = document.getElementById('gallery-lightbox-img');
+    const galleryThumbs      = document.querySelectorAll('.gallery-thumb');
 
-    function gallerySelect(thumb, src) {
-      galleryMain.src = src;
-      document.querySelectorAll('.gallery-thumb').forEach(t => {
-        t.classList.add('opacity-50');
-        t.classList.remove('opacity-100');
+    function galleryGoto(index) {
+      galleryIndex = (index + galleryImages.length) % galleryImages.length;
+      galleryMain.src = galleryImages[galleryIndex];
+      galleryThumbs.forEach((t, i) => {
+        t.classList.toggle('opacity-100', i === galleryIndex);
+        t.classList.toggle('opacity-50',  i !== galleryIndex);
       });
-      thumb.classList.remove('opacity-50');
-      thumb.classList.add('opacity-100');
     }
+    function galleryPrev() { galleryGoto(galleryIndex - 1); }
+    function galleryNext() { galleryGoto(galleryIndex + 1); }
+
     function galleryOpenLightbox() {
       galleryLightboxImg.src = galleryMain.src;
       galleryLightbox.classList.remove('hidden');

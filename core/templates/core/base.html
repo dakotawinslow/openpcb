@@ -88,6 +88,12 @@
     .chamfer    { clip-path: polygon(8px  0%, calc(100% - 8px)  0%, 100%  8px, 100% calc(100% -  8px), calc(100% -  8px) 100%,  8px 100%, 0% calc(100% -  8px), 0%  8px); }
     .chamfer-lg { clip-path: polygon(14px 0%, calc(100% - 14px) 0%, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0% calc(100% - 14px), 0% 14px); }
 
+    /* Scrollable thumbnail strip */
+    .gallery-strip { scrollbar-width: thin; scrollbar-color: rgba(var(--brand-600-rgb), 0.5) transparent; }
+    .gallery-strip::-webkit-scrollbar { height: 4px; }
+    .gallery-strip::-webkit-scrollbar-track { background: transparent; }
+    .gallery-strip::-webkit-scrollbar-thumb { background: rgba(var(--brand-600-rgb), 0.5); border-radius: 2px; }
+
     /* Chamfer-following outlines — references brand tokens above */
     .ds-outline       { filter: drop-shadow(0 0 0.75px #9ca3af); }
     .ds-outline-brand { filter: drop-shadow(0 0 0.75px rgba(var(--brand-300-rgb), 1)); }

@@ -23,7 +23,7 @@ PROJECTS = [
             {"name": "schematic.pdf",                "type": "Schematic", "size": "312 KB"},
         ],
         "thumbnail": "https://placehold.co/400x300/1a4d2e/ffffff?text=RP2040+Breakout",
-        "images": ["proj1/1.png", "proj1/2.png", "proj1/3.png", "proj1/4.png"],
+        "images": ["proj1/1.png", "proj1/2.png", "proj1/3.png", "proj1/4.png", "proj1/5.png", "proj1/6.png", "proj1/7.png"],
     },
     {
         "id": 2,
