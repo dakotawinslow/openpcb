@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}OpenPCB{% endblock %}</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'media',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50:  '#f0fdf4',  // near-white tint for hover backgrounds
+              100: '#dcfce7',  // very light green, badge backgrounds
+              200: '#bbf7d0',  // light accent
+              300: '#86efac',  // light interactive elements
+              400: '#34d475',  // bright green, dark-mode accents
+              500: '#1a9e4f',  // medium soldermask green
+              600: '#157a3c',  // primary soldermask green — main action color
+              700: '#0f5c2c',  // dark soldermask green — hover state
+              800: '#0a3d1d',  // deep green — dark mode surfaces
+              900: '#05200e',  // near-black green — dark mode deep background
+            },
+          },
+        },
+      },
+    }
+  </script>
+
+  <!-- Subtle 45° PCB trace diagonal line pattern -->
+  <style>
+    body {
+      background-image: repeating-linear-gradient(
+        -45deg,
+        transparent 0px, transparent 24px,
+        rgba(26, 158, 79, 0.045) 24px, rgba(26, 158, 79, 0.045) 25px
+      );
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-image: repeating-linear-gradient(
+          -45deg,
+          transparent 0px, transparent 24px,
+          rgba(26, 158, 79, 0.09) 24px, rgba(26, 158, 79, 0.09) 25px
+        );
+      }
+    }
+  </style>
+
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+</head>
+<body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+
+  <nav class="sticky top-0 z-50 bg-white/90 dark:bg-gray-950/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+
+      <a href="/" class="font-bold text-xl tracking-tight">
+        <span class="text-brand-600 dark:text-brand-400">Open</span><span class="text-gray-900 dark:text-white">PCB</span>
+      </a>
+
+      <div class="flex items-center gap-6">
+        <a href="/explore/" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Explore</a>
+        <a href="#" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Log In</a>
+        <a href="#" class="text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-md transition-colors">Upload</a>
+      </div>
+
+    </div>
+  </nav>
+
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="mt-16 border-t border-gray-200 dark:border-gray-800 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <p class="text-center text-sm text-gray-500 dark:text-gray-400">
+        OpenPCB &copy; 2026 &mdash; Open hardware for everyone
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>
