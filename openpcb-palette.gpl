@@ -1,0 +1,27 @@
+GIMP Palette
+Name: OpenPCB
+Columns: 10
+#
+# Kelly Green (brand)
+242 253 242	brand-50
+213 245 213	brand-100
+168 232 168	brand-200
+108 212 108	brand-300
+ 56 193  56	brand-400
+ 36 154  36	brand-500
+ 26 122  26	brand-600
+ 18  92  18	brand-700
+ 11  61  11	brand-800
+  6  32   6	brand-900
+#
+# Copper (accent)
+254 244 236	copper-50
+253 228 200	copper-100
+249 197 148	copper-200
+240 160  80	copper-300
+224 128  42	copper-400
+196 114  42	copper-500
+168  94  34	copper-600
+140  76  26	copper-700
+ 92  50  16	copper-800
+ 46  25   8	copper-900

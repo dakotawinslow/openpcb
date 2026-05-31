@@ -6,24 +6,43 @@
   <title>{% block title %}OpenPCB{% endblock %}</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><polygon points='6,0 26,0 32,6 32,26 26,32 6,32 0,26 0,6' fill='%23157a3c'/><path d='M7 18 L13 18 L19 12 L25 12' stroke='%234ade80' stroke-width='2.5' fill='none' stroke-linecap='square'/><path d='M7 24 L11 24 L17 18 L25 18' stroke='%234ade80' stroke-width='2.5' fill='none' stroke-linecap='square'/><circle cx='13' cy='18' r='2.5' fill='%234ade80'/><circle cx='17' cy='18' r='2.5' fill='%234ade80'/><circle cx='19' cy='12' r='2.5' fill='%234ade80'/></svg>">
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'media',
       theme: {
         extend: {
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          },
           colors: {
             brand: {
-              50:  '#f0fdf4',  // near-white tint for hover backgrounds
-              100: '#dcfce7',  // very light green, badge backgrounds
-              200: '#bbf7d0',  // light accent
-              300: '#86efac',  // light interactive elements
-              400: '#34d475',  // bright green, dark-mode accents
-              500: '#1a9e4f',  // medium soldermask green
-              600: '#157a3c',  // primary soldermask green — main action color
-              700: '#0f5c2c',  // dark soldermask green — hover state
-              800: '#0a3d1d',  // deep green — dark mode surfaces
-              900: '#05200e',  // near-black green — dark mode deep background
+              50:  '#f2fdf2',  // near-white tint for hover backgrounds
+              100: '#d5f5d5',  // very light kelly, badge backgrounds
+              200: '#a8e8a8',  // light kelly accent
+              300: '#6cd46c',  // light interactive elements
+              400: '#38c138',  // vivid kelly green, dark-mode accents
+              500: '#249a24',  // medium kelly green
+              600: '#1a7a1a',  // deep kelly green — main action color
+              700: '#125c12',  // dark kelly green — hover state
+              800: '#0b3d0b',  // deep green — dark mode surfaces
+              900: '#062006',  // near-black green — dark mode deep background
+            },
+            copper: {
+              50:  '#fef4ec',  // near-white copper tint
+              100: '#fde4c8',  // very light copper
+              200: '#f9c594',  // light copper
+              300: '#f0a050',  // warm copper highlight
+              400: '#e0802a',  // bright copper
+              500: '#c4722a',  // rich copper — primary accent
+              600: '#a85e22',  // deep copper — hover state
+              700: '#8c4c1a',  // dark copper
+              800: '#5c3210',  // very dark copper
+              900: '#2e1908',  // near-black copper
             },
           },
         },
@@ -31,13 +50,23 @@
     }
   </script>
 
-  <!-- Subtle 45° PCB trace diagonal line pattern -->
+  <!-- Brand colour tokens — single source of truth for CSS that can't use Tailwind classes.
+       When updating the palette, change these AND the Tailwind config above. -->
   <style>
+    :root {
+      --brand-300-rgb:  108, 212, 108;  /* brand-300: light kelly, used for brand outlines */
+      --brand-600-rgb:  26,  122, 26;   /* brand-600: deep kelly, primary action + trace pattern */
+      --brand-700-rgb:  18,  92,  18;   /* brand-700: dark kelly, dark-mode brand outlines */
+      --copper-500-rgb: 196, 114, 42;   /* copper-500: rich copper accent */
+      --copper-600-rgb: 168, 94,  34;   /* copper-600: deep copper, hover state */
+    }
+
+    /* Subtle 45° PCB trace — references brand-600 so it shifts with the palette */
     body {
       background-image: repeating-linear-gradient(
         -45deg,
         transparent 0px, transparent 24px,
-        rgba(26, 158, 79, 0.045) 24px, rgba(26, 158, 79, 0.045) 25px
+        rgba(var(--brand-600-rgb), 0.045) 24px, rgba(var(--brand-600-rgb), 0.045) 25px
       );
     }
     @media (prefers-color-scheme: dark) {
@@ -45,28 +74,27 @@
         background-image: repeating-linear-gradient(
           -45deg,
           transparent 0px, transparent 24px,
-          rgba(26, 158, 79, 0.09) 24px, rgba(26, 158, 79, 0.09) 25px
+          rgba(var(--brand-600-rgb), 0.09) 24px, rgba(var(--brand-600-rgb), 0.09) 25px
         );
       }
     }
 
     /* 45° chamfered corners — use instead of rounded-* classes.
        clip-path clips everything including CSS borders, so never use border-*
-       on a chamfered element. Use drop-shadow-outline-* instead — drop-shadow
-       is composited AFTER clip-path and correctly traces the chamfer shape. */
+       on a chamfered element. Use ds-* instead — drop-shadow is composited
+       AFTER clip-path and correctly traces the chamfer shape. */
     .chamfer-sm { clip-path: polygon(5px  0%, calc(100% - 5px)  0%, 100%  5px, 100% calc(100% -  5px), calc(100% -  5px) 100%,  5px 100%, 0% calc(100% -  5px), 0%  5px); }
     .chamfer    { clip-path: polygon(8px  0%, calc(100% - 8px)  0%, 100%  8px, 100% calc(100% -  8px), calc(100% -  8px) 100%,  8px 100%, 0% calc(100% -  8px), 0%  8px); }
     .chamfer-lg { clip-path: polygon(14px 0%, calc(100% - 14px) 0%, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0% calc(100% - 14px), 0% 14px); }
 
-    /* Chamfer-following outlines via drop-shadow (replaces border-* on chamfered elements).
-       Combine with an elevation shadow by chaining multiple drop-shadow() values. */
+    /* Chamfer-following outlines — references brand tokens above */
     .ds-outline       { filter: drop-shadow(0 0 0.75px #9ca3af); }
-    .ds-outline-brand { filter: drop-shadow(0 0 0.75px #86efac); }
+    .ds-outline-brand { filter: drop-shadow(0 0 0.75px rgba(var(--brand-300-rgb), 1)); }
     .ds-card          { filter: drop-shadow(0 0 0.75px #d1d5db) drop-shadow(0 2px 6px rgba(0,0,0,0.07)); transition: filter 0.2s; }
     .ds-card:hover    { filter: drop-shadow(0 0 0.75px #d1d5db) drop-shadow(0 6px 14px rgba(0,0,0,0.12)); }
     @media (prefers-color-scheme: dark) {
       .ds-outline       { filter: drop-shadow(0 0 0.75px #4b5563); }
-      .ds-outline-brand { filter: drop-shadow(0 0 0.75px #166534); }
+      .ds-outline-brand { filter: drop-shadow(0 0 0.75px rgba(var(--brand-700-rgb), 1)); }
       .ds-card          { filter: drop-shadow(0 0 0.75px #374151) drop-shadow(0 2px 6px rgba(0,0,0,0.3)); transition: filter 0.2s; }
       .ds-card:hover    { filter: drop-shadow(0 0 0.75px #374151) drop-shadow(0 6px 14px rgba(0,0,0,0.4)); }
     }
@@ -86,7 +114,7 @@
       <div class="flex items-center gap-6">
         <a href="/explore/" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Explore</a>
         <a href="#" title="Coming soon" class="text-sm font-medium text-gray-400 dark:text-gray-600 cursor-not-allowed">Log In</a>
-        <a href="#" title="Coming soon" class="text-sm font-medium bg-brand-600 text-white px-4 py-2 chamfer opacity-50 cursor-not-allowed">Upload</a>
+        <a href="#" title="Coming soon" class="text-sm font-medium bg-copper-500 hover:bg-copper-600 text-white px-4 py-2 chamfer transition-colors">Upload</a>
       </div>
 
     </div>
