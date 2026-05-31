@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}OpenPCB{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><polygon points='6,0 26,0 32,6 32,26 26,32 6,32 0,26 0,6' fill='%23157a3c'/><path d='M7 18 L13 18 L19 12 L25 12' stroke='%234ade80' stroke-width='2.5' fill='none' stroke-linecap='square'/><path d='M7 24 L11 24 L17 18 L25 18' stroke='%234ade80' stroke-width='2.5' fill='none' stroke-linecap='square'/><circle cx='13' cy='18' r='2.5' fill='%234ade80'/><circle cx='17' cy='18' r='2.5' fill='%234ade80'/><circle cx='19' cy='12' r='2.5' fill='%234ade80'/></svg>">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -84,8 +85,8 @@
 
       <div class="flex items-center gap-6">
         <a href="/explore/" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Explore</a>
-        <a href="#" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Log In</a>
-        <a href="#" class="text-sm font-medium bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 chamfer transition-colors">Upload</a>
+        <a href="#" title="Coming soon" class="text-sm font-medium text-gray-400 dark:text-gray-600 cursor-not-allowed">Log In</a>
+        <a href="#" title="Coming soon" class="text-sm font-medium bg-brand-600 text-white px-4 py-2 chamfer opacity-50 cursor-not-allowed">Upload</a>
       </div>
 
     </div>
@@ -95,11 +96,33 @@
     {% block content %}{% endblock %}
   </main>
 
-  <footer class="mt-16 border-t border-gray-200 dark:border-gray-800 py-8">
+  <footer class="mt-16 border-t border-gray-200 dark:border-gray-800 py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <p class="text-center text-sm text-gray-500 dark:text-gray-400">
-        OpenPCB &copy; 2026 &mdash; Open hardware for everyone
-      </p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8">
+
+        <div>
+          <p class="font-bold text-lg text-gray-900 dark:text-white mb-2">
+            <span class="text-brand-600 dark:text-brand-400">Open</span>PCB
+          </p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
+            A community platform for sharing open-source PCB designs. Early development — we're actively looking for feedback and contributions.
+          </p>
+        </div>
+
+        <div class="sm:text-right">
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Built in the open</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Have a design to share or a feature idea?<br>
+            <a href="https://github.com/dakotawinslow/openpcb" class="text-brand-600 dark:text-brand-400 hover:underline">github.com/dakotawinslow/openpcb</a>
+          </p>
+        </div>
+
+      </div>
+      <div class="border-t border-gray-200 dark:border-gray-800 pt-6">
+        <p class="text-center text-sm text-gray-400 dark:text-gray-600">
+          OpenPCB &copy; 2026 &mdash; Open hardware for everyone
+        </p>
+      </div>
     </div>
   </footer>
 
