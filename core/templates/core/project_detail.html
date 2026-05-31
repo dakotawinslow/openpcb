@@ -75,6 +75,7 @@
              class="w-full h-full object-contain" style="max-height: 480px;">
       </div>
 
+      {% if project.images|length > 1 %}
       <button onclick="galleryPrev()"
               class="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-20 h-20 bg-black/40 hover:bg-black/70 text-white flex items-center justify-center chamfer transition-colors">
         <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,6 +89,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
         </svg>
       </button>
+      {% endif %}
 
     </div>
 
