@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+staticfiles/
+
+# uv
+.venv/
+
+# Docker
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code memory (contains personal context, not for public repos)
+memory/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
