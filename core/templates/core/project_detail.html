@@ -111,32 +111,40 @@
   </div>
 
   <script>
-    const galleryImages = [{% for img in project.images %}"{% static img %}"{% if not forloop.last %},{% endif %}{% endfor %}];
-    let galleryIndex = 0;
+    (function () {
+      const galleryImages = [{% for img in project.images %}"{% static img %}"{% if not forloop.last %},{% endif %}{% endfor %}];
+      let galleryIndex = 0;
 
-    const galleryMain        = document.getElementById('gallery-main');
-    const galleryLightbox    = document.getElementById('gallery-lightbox');
-    const galleryLightboxImg = document.getElementById('gallery-lightbox-img');
-    const galleryThumbs      = document.querySelectorAll('.gallery-thumb');
+      const galleryMain        = document.getElementById('gallery-main');
+      const galleryLightbox    = document.getElementById('gallery-lightbox');
+      const galleryLightboxImg = document.getElementById('gallery-lightbox-img');
+      const galleryThumbs      = document.querySelectorAll('.gallery-thumb');
 
-    function galleryGoto(index) {
-      galleryIndex = (index + galleryImages.length) % galleryImages.length;
-      galleryMain.src = galleryImages[galleryIndex];
-      galleryThumbs.forEach((t, i) => {
-        t.classList.toggle('opacity-100', i === galleryIndex);
-        t.classList.toggle('opacity-50',  i !== galleryIndex);
-      });
-    }
-    function galleryPrev() { galleryGoto(galleryIndex - 1); }
-    function galleryNext() { galleryGoto(galleryIndex + 1); }
+      function galleryGoto(index) {
+        galleryIndex = (index + galleryImages.length) % galleryImages.length;
+        galleryMain.src = galleryImages[galleryIndex];
+        galleryThumbs.forEach((t, i) => {
+          t.classList.toggle('opacity-100', i === galleryIndex);
+          t.classList.toggle('opacity-50',  i !== galleryIndex);
+        });
+      }
+      function galleryPrev() { galleryGoto(galleryIndex - 1); }
+      function galleryNext() { galleryGoto(galleryIndex + 1); }
 
-    function galleryOpenLightbox() {
-      galleryLightboxImg.src = galleryMain.src;
-      galleryLightbox.classList.remove('hidden');
-    }
-    function galleryCloseLightbox() {
-      galleryLightbox.classList.add('hidden');
-    }
+      function galleryOpenLightbox() {
+        galleryLightboxImg.src = galleryMain.src;
+        galleryLightbox.classList.remove('hidden');
+      }
+      function galleryCloseLightbox() {
+        galleryLightbox.classList.add('hidden');
+      }
+
+      window.galleryGoto         = galleryGoto;
+      window.galleryPrev         = galleryPrev;
+      window.galleryNext         = galleryNext;
+      window.galleryOpenLightbox  = galleryOpenLightbox;
+      window.galleryCloseLightbox = galleryCloseLightbox;
+    }());
   </script>
   {% endif %}
 
