@@ -123,8 +123,9 @@
       galleryIndex = (index + galleryImages.length) % galleryImages.length;
       galleryMain.src = galleryImages[galleryIndex];
       galleryThumbs.forEach((t, i) => {
-        t.classList.toggle('opacity-100', i === galleryIndex);
-        t.classList.toggle('opacity-50',  i !== galleryIndex);
+        t.classList.toggle('opacity-100',    i === galleryIndex);
+        t.classList.toggle('opacity-50',     i !== galleryIndex);
+        t.classList.toggle('hover:opacity-80', i !== galleryIndex);
       });
     }
     function galleryPrev() { galleryGoto(galleryIndex - 1); }
