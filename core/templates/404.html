@@ -25,11 +25,11 @@
   </p>
 
   <div class="flex flex-wrap items-center justify-center gap-4">
-    <a href="/"
+    <a href="{% url 'index' %}"
        class="px-6 py-2.5 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white chamfer transition-colors">
       Go home
     </a>
-    <a href="/explore/"
+    <a href="{% url 'explore' %}"
        class="px-6 py-2.5 text-sm font-semibold bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 chamfer ds-outline transition-colors">
       Browse designs
     </a>
