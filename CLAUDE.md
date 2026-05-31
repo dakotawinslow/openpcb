@@ -52,6 +52,7 @@ auth, and file uploads. Do not get ahead of that phase.
 | Frontend interaction | HTMX |
 | Styling | Tailwind CSS (CDN for demo, not compiled) |
 | Language | Python 3.12 |
+| Package management | uv (`pyproject.toml` + `uv.lock`) |
 | Containerization | Docker + Docker Compose |
 | Version control | Git / GitHub |
 
@@ -71,7 +72,8 @@ openpcb/                        ← repo root, also Django project root
 ├── CLAUDE.md                   ← this file
 ├── Dockerfile
 ├── docker-compose.yml
-├── requirements.txt
+├── pyproject.toml              ← dependencies (edit this to add packages)
+├── uv.lock                     ← auto-generated, never edit by hand
 ├── manage.py
 ├── openpcb/                    ← Django project package
 │   ├── settings.py
@@ -232,6 +234,8 @@ demo phase, flag it and confirm before proceeding.
 | 2026-05-30 | Demo vs. MVP | Starting with a proof-of-concept demo (hardcoded data, no backend) before building a real MVP. Validate the idea first. |
 | 2026-05-30 | Dev environment | Docker Compose on local desktop Linux machine. No cloud dev environment. |
 | 2026-05-30 | Tailwind setup | CDN only for demo phase. No Node toolchain until it becomes necessary. |
+| 2026-05-30 | Package manager | uv instead of pip/requirements.txt. Modern standard, faster installs, reproducible builds via uv.lock. |
+| 2026-05-30 | Sprint 0 complete | Django scaffold running in Docker at localhost:8000. Repo live at github.com/dakotawinslow/openpcb. |
 ```
 
 ---
