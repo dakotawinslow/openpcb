@@ -124,8 +124,10 @@ def index(request):
     return render(request, 'core/index.html', {'projects': PROJECTS})
 
 
+FILTER_LABELS = ['All', 'Microcontrollers', 'Power', 'RF', 'Sensors']
+
 def explore(request):
-    return render(request, 'core/explore.html', {'projects': PROJECTS})
+    return render(request, 'core/explore.html', {'projects': PROJECTS, 'filter_labels': FILTER_LABELS})
 
 
 def project_detail(request, id):
