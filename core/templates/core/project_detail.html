@@ -111,7 +111,6 @@
   </div>
 
   <script>
-    const galleryImages = [{% for img in project.images %}"{% static img %}"{% if not forloop.last %},{% endif %}{% endfor %}];
     let galleryIndex = 0;
 
     const galleryMain        = document.getElementById('gallery-main');
@@ -120,8 +119,8 @@
     const galleryThumbs      = document.querySelectorAll('.gallery-thumb');
 
     function galleryGoto(index) {
-      galleryIndex = (index + galleryImages.length) % galleryImages.length;
-      galleryMain.src = galleryImages[galleryIndex];
+      galleryIndex = (index + galleryThumbs.length) % galleryThumbs.length;
+      galleryMain.src = galleryThumbs[galleryIndex].querySelector('img').src;
       galleryThumbs.forEach((t, i) => {
         t.classList.toggle('opacity-100', i === galleryIndex);
         t.classList.toggle('opacity-50',  i !== galleryIndex);
