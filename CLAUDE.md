@@ -172,6 +172,41 @@ These are the only routes for the demo. Do not add routes unless asked.
 
 ---
 
+## Design Motifs (Core Principles)
+
+These are non-negotiable visual decisions that define the OpenPCB aesthetic.
+Apply them consistently across all new UI elements.
+
+### 45° Chamfered Corners
+
+**Never use `rounded-*` Tailwind classes.** All corners are chamfered at 45°
+using `clip-path` utility classes defined in `base.html`:
+
+| Class | Chamfer size | Use for |
+|---|---|---|
+| `chamfer-sm` | 5px | Tags, badges, small buttons, avatars |
+| `chamfer` | 8px | Standard buttons, inputs |
+| `chamfer-lg` | 14px | Cards, panels, large containers |
+
+Because `clip-path` clips box shadows, use CSS `filter: drop-shadow()` instead
+of Tailwind `shadow-*` classes on elements that need a shadow.
+
+### Soldermask Green Theme
+
+The brand color palette is defined in `base.html`'s Tailwind config under
+`brand`. Key values:
+- `brand-600` — primary soldermask green, main action color
+- `brand-400` — lighter accent for dark mode
+- `brand-50/brand-900` — tag/badge backgrounds (light/dark)
+
+### PCB Trace Background
+
+A subtle `repeating-linear-gradient` at −45° runs across the page body,
+evoking PCB trace routing. Defined in `base.html`'s `<style>` block. Do not
+remove or override this on individual pages.
+
+---
+
 ## HTMX Conventions
 
 HTMX is included in `base.html` but is not actively used in the demo phase.
@@ -236,6 +271,8 @@ demo phase, flag it and confirm before proceeding.
 | 2026-05-30 | Tailwind setup | CDN only for demo phase. No Node toolchain until it becomes necessary. |
 | 2026-05-30 | Package manager | uv instead of pip/requirements.txt. Modern standard, faster installs, reproducible builds via uv.lock. |
 | 2026-05-30 | Sprint 0 complete | Django scaffold running in Docker at localhost:8000. Repo live at github.com/dakotawinslow/openpcb. |
+| 2026-05-31 | Corner style | 45° chamfered corners (clip-path) chosen over rounded corners as a core PCB-aesthetic motif. Applied to all UI elements. Never use rounded-* classes. |
+| 2026-05-31 | Sprints 1–4 complete | Base template, seed data, explore page, and card component done. Sprint 3 (landing page) intentionally deferred — doing detail page next. |
 ```
 
 ---
