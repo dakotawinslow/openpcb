@@ -14,6 +14,9 @@ local_settings.py
 db.sqlite3
 staticfiles/
 
+# Environment — never commit real secrets
+.env
+
 # uv
 .venv/
 
@@ -26,6 +29,7 @@ Thumbs.db
 
 # Claude Code memory (contains personal context, not for public repos)
 memory/
+planning/
 
 # Editor
 .vscode/

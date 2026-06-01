@@ -6,4 +6,10 @@ dependencies = [
     "django>=5.0",
     "watchfiles>=1.2.0",
     "whitenoise",
+    "psycopg[binary]",
+    "django-allauth",
+    "django-storages[s3]",
+    "boto3",
+    "django-environ",
+    "Pillow",
 ]
