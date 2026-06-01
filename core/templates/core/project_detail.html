@@ -72,9 +72,10 @@
         <img id="gallery-main"
              src="{% static project.images.0 %}"
              alt="{{ project.title }}"
-             class="w-full h-full object-contain" style="max-height: 480px;">
+             class="w-full h-full object-contain">
       </div>
 
+      {% if project.images|length > 1 %}
       <button onclick="galleryPrev()"
               class="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-20 h-20 bg-black/40 hover:bg-black/70 text-white flex items-center justify-center chamfer transition-colors">
         <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,6 +89,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
         </svg>
       </button>
+      {% endif %}
 
     </div>
 
@@ -111,32 +113,33 @@
   </div>
 
   <script>
-    const galleryImages = [{% for img in project.images %}"{% static img %}"{% if not forloop.last %},{% endif %}{% endfor %}];
-    let galleryIndex = 0;
+    (function () {
+      let galleryIndex = 0;
 
-    const galleryMain        = document.getElementById('gallery-main');
-    const galleryLightbox    = document.getElementById('gallery-lightbox');
-    const galleryLightboxImg = document.getElementById('gallery-lightbox-img');
-    const galleryThumbs      = document.querySelectorAll('.gallery-thumb');
+      const galleryMain        = document.getElementById('gallery-main');
+      const galleryLightbox    = document.getElementById('gallery-lightbox');
+      const galleryLightboxImg = document.getElementById('gallery-lightbox-img');
+      const galleryThumbs      = document.querySelectorAll('.gallery-thumb');
 
-    function galleryGoto(index) {
-      galleryIndex = (index + galleryImages.length) % galleryImages.length;
-      galleryMain.src = galleryImages[galleryIndex];
-      galleryThumbs.forEach((t, i) => {
-        t.classList.toggle('opacity-100', i === galleryIndex);
-        t.classList.toggle('opacity-50',  i !== galleryIndex);
-      });
-    }
-    function galleryPrev() { galleryGoto(galleryIndex - 1); }
-    function galleryNext() { galleryGoto(galleryIndex + 1); }
+      window.galleryGoto = function (index) {
+        galleryIndex = (index + galleryThumbs.length) % galleryThumbs.length;
+        galleryMain.src = galleryThumbs[galleryIndex].querySelector('img').src;
+        galleryThumbs.forEach((t, i) => {
+          t.classList.toggle('opacity-100', i === galleryIndex);
+          t.classList.toggle('opacity-50',  i !== galleryIndex);
+        });
+      };
+      window.galleryPrev = function () { window.galleryGoto(galleryIndex - 1); };
+      window.galleryNext = function () { window.galleryGoto(galleryIndex + 1); };
 
-    function galleryOpenLightbox() {
-      galleryLightboxImg.src = galleryMain.src;
-      galleryLightbox.classList.remove('hidden');
-    }
-    function galleryCloseLightbox() {
-      galleryLightbox.classList.add('hidden');
-    }
+      window.galleryOpenLightbox = function () {
+        galleryLightboxImg.src = galleryMain.src;
+        galleryLightbox.classList.remove('hidden');
+      };
+      window.galleryCloseLightbox = function () {
+        galleryLightbox.classList.add('hidden');
+      };
+    }());
   </script>
   {% endif %}
 
