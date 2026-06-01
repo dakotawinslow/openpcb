@@ -11,7 +11,7 @@
 
     <!-- Breadcrumb -->
     <nav class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-      <a href="/explore/" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Explore</a>
+      <a href="{% url 'explore' %}" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Explore</a>
       <span class="mx-2">›</span>
       <span class="text-gray-900 dark:text-white">{{ project.title }}</span>
     </nav>
