@@ -94,7 +94,7 @@
     <!-- Thumbnails — horizontally scrollable strip -->
     <div class="flex gap-2 overflow-x-auto pb-1 gallery-strip">
       {% for img in project.images %}
-      <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer transition-opacity ds-outline {% if forloop.first %}opacity-100{% else %}opacity-50 hover:opacity-80{% endif %}"
+      <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer transition-opacity ds-outline {% if forloop.first %}opacity-100{% else %}opacity-50{% endif %}"
            onclick="galleryGoto({{ forloop.counter0 }})">
         <img src="{% static img %}" alt="Photo {{ forloop.counter }}" class="w-full h-full object-cover">
       </div>
