@@ -210,6 +210,13 @@ The brand color palette is defined in `base.html`'s Tailwind config under
 - `brand-400` — lighter accent for dark mode
 - `brand-50/brand-900` — tag/badge backgrounds (light/dark)
 
+**CSS custom properties (`--brand-*-rgb`, `--copper-*-rgb`) are derived
+automatically** from the Tailwind config by an inline `<script>` in
+`base.html`'s `<head>`. Do not add a manual `:root {}` block — update the
+Tailwind config only. The script converts hex values to RGB tuples and sets
+them on `document.documentElement.style` synchronously, so they are available
+before first paint.
+
 ### PCB Trace Background
 
 A subtle `repeating-linear-gradient` at −45° runs across the page body,
@@ -225,6 +232,21 @@ It is wired in now so it is available when we need it. Do not add HTMX
 interactions until the real MVP phase unless a specific interaction is
 explicitly requested.
 
+**JavaScript in templates must be wrapped in an IIFE.** Any `<script>` block
+inside a template that could be re-executed by an HTMX content swap must wrap
+all its declarations in an immediately-invoked function expression to avoid
+`SyntaxError: Identifier already declared` on re-swap:
+
+```js
+(function () {
+  const foo = ...;   // safe — scoped to the IIFE
+  window.myHandler = function () { ... };  // exposed for onclick= attrs
+}());
+```
+
+Functions called from inline `onclick=` attributes must be explicitly assigned
+to `window`; declarations inside an IIFE are not visible in global scope.
+
 ---
 
 ## Development Environment
@@ -235,8 +257,9 @@ explicitly requested.
 - The app runs at `http://localhost:8000`.
 - `docker compose up` should always be the single command needed to start the
   full environment.
-- There is no database container in the demo phase. The `docker-compose.yml`
-  has a single `web` service.
+- `docker-compose.yml` has a `web` service and a `db` service (Postgres 16).
+  Copy `.env.example` to `.env` before first run — settings are loaded via
+  `django-environ` from that file.
 - Static files are served by **WhiteNoise** — no separate static file server
   or Nginx is needed in development or demo deployment.
 
@@ -286,7 +309,10 @@ demo phase, flag it and confirm before proceeding.
 | 2026-05-31 | Sprints 1–4 complete | Base template, seed data, explore page, and card component done. Sprint 3 (landing page) intentionally deferred — doing detail page next. |
 | 2026-05-31 | Sprint 5 complete | Project detail page done. |
 | 2026-05-31 | Chamfer borders | CSS border-* is clipped by clip-path and cannot follow the chamfer. Use filter: drop-shadow() (ds-* utilities) instead — it composites after clip-path and traces the shape correctly. |
-```
+| 2026-05-31 | Infrastructure sprint | Postgres 16 + Cloudflare R2 + django-environ wired in. docker-compose now has a `db` service. Settings read from `.env` via django-environ. Copy `.env.example` to `.env` before first run. |
+| 2026-05-31 | CSS custom properties | `--brand-*-rgb` / `--copper-*-rgb` vars are now derived from the Tailwind config via an inline script in `base.html`. Never duplicate hex values in a manual `:root` block — the Tailwind config is the single source of truth. |
+| 2026-05-31 | Gallery JS scoping | All `<script>` blocks in templates must be wrapped in an IIFE. Functions called from inline `onclick=` must be assigned to `window`. Prevents SyntaxError on HTMX re-swap. |
+| 2026-05-31 | Bug sweep | 10 GitHub issues filed and resolved: hardcoded hrefs → `{% url %}`, gallery thumbnail hover state, JS globals, palette duplication, prev/next button visibility, redundant inline styles, duplicate image URL array. All merged to main. |
 
 ---
 
