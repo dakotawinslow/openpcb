@@ -131,8 +131,19 @@
 
       <div class="flex items-center gap-6">
         <a href="{% url 'explore' %}" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Explore</a>
-        <a href="#" title="Coming soon" class="text-sm font-medium text-gray-400 dark:text-gray-600 cursor-not-allowed">Log In</a>
-        <a href="#" title="Coming soon" class="text-sm font-medium bg-copper-500 hover:bg-copper-600 text-white px-4 py-2 chamfer transition-colors">Upload</a>
+        {% if user.is_authenticated %}
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ user.username }}</span>
+          <form method="post" action="{% url 'account_logout' %}" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+              Log out
+            </button>
+          </form>
+          <a href="#" title="Coming soon" class="text-sm font-medium bg-copper-500 hover:bg-copper-600 text-white px-4 py-2 chamfer transition-colors">Upload</a>
+        {% else %}
+          <a href="{% url 'account_login' %}" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Log in</a>
+          <a href="{% url 'account_signup' %}" class="text-sm font-medium bg-copper-500 hover:bg-copper-600 text-white px-4 py-2 chamfer transition-colors">Sign up</a>
+        {% endif %}
       </div>
 
     </div>

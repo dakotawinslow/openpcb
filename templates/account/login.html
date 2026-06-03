@@ -1,0 +1,80 @@
+{% extends "core/base.html" %}
+{% load allauth account %}
+
+{% block title %}Log In — OpenPCB{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center px-4 py-16">
+  <div class="w-full max-w-md">
+
+    <div class="bg-white dark:bg-gray-900 p-8 ds-card chamfer-lg">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Log in</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+        No account?
+        <a href="{% url 'account_signup' %}" class="text-brand-600 dark:text-brand-400 hover:underline">Sign up</a>
+      </p>
+
+      {% if form.non_field_errors %}
+        <div class="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm chamfer">
+          {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'account_login' %}" class="space-y-4">
+        {% csrf_token %}
+
+        <div>
+          <label for="{{ form.login.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Username or email
+          </label>
+          <input
+            type="text"
+            name="{{ form.login.html_name }}"
+            id="{{ form.login.id_for_label }}"
+            autocomplete="username"
+            autofocus
+            value="{{ form.login.value|default:'' }}"
+            class="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm chamfer ds-outline focus:ds-outline-brand focus:outline-none"
+            {% if form.login.errors %}aria-invalid="true"{% endif %}
+          >
+          {% if form.login.errors %}
+            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.login.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label for="{{ form.password.id_for_label }}" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Password
+            </label>
+            <a href="{% url 'account_reset_password' %}" class="text-xs text-brand-600 dark:text-brand-400 hover:underline">
+              Forgot password?
+            </a>
+          </div>
+          <input
+            type="password"
+            name="{{ form.password.html_name }}"
+            id="{{ form.password.id_for_label }}"
+            autocomplete="current-password"
+            class="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm chamfer ds-outline focus:outline-none"
+            {% if form.password.errors %}aria-invalid="true"{% endif %}
+          >
+          {% if form.password.errors %}
+            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.password.errors|join:", " }}</p>
+          {% endif %}
+        </div>
+
+        {% if redirect_field_value %}
+          <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+        {% endif %}
+
+        <button type="submit"
+          class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm chamfer transition-colors">
+          Log in
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
