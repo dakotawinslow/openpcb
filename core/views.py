@@ -1,124 +1,11 @@
-from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.http import Http404, HttpResponsePermanentRedirect
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse, reverse_lazy
+from django.views.generic import CreateView, DeleteView, UpdateView
 
-PROJECTS = [
-    {
-        "id": 1,
-        "title": "RP2040 Breakout Board",
-        "author": "jsmith",
-        "description": (
-            "A minimal breakout for the RP2040 with USB-C, LiPo charging circuit, "
-            "and 2MB onboard flash. Designed in KiCad 7. All components are LCSC "
-            "stocked for easy JLCPCB assembly. Fits a standard Raspberry Pi Pico "
-            "footprint so existing Pico cases work out of the box."
-        ),
-        "license": "CC BY-SA 4.0",
-        "tags": ["microcontroller", "rp2040", "usb-c", "breakout"],
-        "downloads": 312,
-        "stars": 87,
-        "uploaded": "2025-11-04",
-        "files": [
-            {"name": "rp2040-breakout-gerbers.zip", "type": "Gerber",    "size": "48 KB"},
-            {"name": "rp2040-breakout.kicad_pcb",   "type": "KiCad PCB", "size": "210 KB"},
-            {"name": "bom.csv",                      "type": "BOM",       "size": "4 KB"},
-            {"name": "schematic.pdf",                "type": "Schematic", "size": "312 KB"},
-        ],
-        "thumbnail": "https://placehold.co/400x300/1a4d2e/ffffff?text=RP2040+Breakout",
-        "images": ["proj1/1.png", "proj1/2.png", "proj1/3.png", "proj1/4.png", "proj1/5.png", "proj1/6.png", "proj1/7.png"],
-    },
-    {
-        "id": 2,
-        "title": "Buck Converter Module — 5A 24V→5V",
-        "author": "powerlab",
-        "description": (
-            "High-efficiency synchronous buck converter based on the LM5140. "
-            "Input 8–36V, output 5V at up to 5A continuous. Features soft-start, "
-            "overcurrent protection, and thermal shutdown. Designed for robotics and "
-            "automation applications where a compact, reliable 5V rail is needed."
-        ),
-        "license": "MIT",
-        "tags": ["power", "buck", "smps", "24v", "robotics"],
-        "downloads": 198,
-        "stars": 54,
-        "uploaded": "2025-09-17",
-        "files": [
-            {"name": "buck-5a-gerbers.zip",    "type": "Gerber",    "size": "62 KB"},
-            {"name": "buck-5a.kicad_pcb",      "type": "KiCad PCB", "size": "185 KB"},
-            {"name": "buck-5a-bom.csv",        "type": "BOM",       "size": "3 KB"},
-            {"name": "buck-5a-schematic.pdf",  "type": "Schematic", "size": "224 KB"},
-        ],
-        "thumbnail": "https://placehold.co/400x300/1a4d2e/ffffff?text=Buck+Converter",
-    },
-    {
-        "id": 3,
-        "title": "ESP32-S3 LoRa Node",
-        "author": "rf_garage",
-        "description": (
-            "Long-range IoT node combining an ESP32-S3 with an SX1276 LoRa radio. "
-            "Targets the 915 MHz ISM band. Includes a u.FL antenna connector, "
-            "18650 battery holder with TP4056 charging, and deep-sleep current under "
-            "12µA. Ideal for remote sensor deployments where WiFi doesn't reach."
-        ),
-        "license": "CC BY 4.0",
-        "tags": ["esp32", "lora", "iot", "wireless", "battery"],
-        "downloads": 441,
-        "stars": 133,
-        "uploaded": "2025-07-22",
-        "files": [
-            {"name": "lora-node-gerbers.zip",   "type": "Gerber",    "size": "54 KB"},
-            {"name": "lora-node.kicad_pcb",     "type": "KiCad PCB", "size": "298 KB"},
-            {"name": "lora-node-bom.csv",       "type": "BOM",       "size": "5 KB"},
-            {"name": "lora-node-schematic.pdf", "type": "Schematic", "size": "401 KB"},
-            {"name": "lora-node-3d.step",       "type": "3D Model",  "size": "1.2 MB"},
-        ],
-        "thumbnail": "https://placehold.co/400x300/1a4d2e/ffffff?text=LoRa+Node",
-    },
-    {
-        "id": 4,
-        "title": "4-Channel Thermocouple Interface",
-        "author": "instru_works",
-        "description": (
-            "Read up to four K-type thermocouples over SPI using the MAX31856. "
-            "Onboard 3.3V LDO and level shifters make it compatible with both 3.3V "
-            "and 5V microcontrollers. Screw terminals for rugged wiring. Used in "
-            "kiln monitoring, reflow oven control, and industrial temperature logging."
-        ),
-        "license": "CC BY-SA 4.0",
-        "tags": ["sensor", "thermocouple", "spi", "temperature", "industrial"],
-        "downloads": 127,
-        "stars": 41,
-        "uploaded": "2025-12-01",
-        "files": [
-            {"name": "tc-interface-gerbers.zip",   "type": "Gerber",    "size": "39 KB"},
-            {"name": "tc-interface.kicad_pcb",     "type": "KiCad PCB", "size": "167 KB"},
-            {"name": "tc-interface-bom.csv",       "type": "BOM",       "size": "3 KB"},
-            {"name": "tc-interface-schematic.pdf", "type": "Schematic", "size": "188 KB"},
-        ],
-        "thumbnail": "https://placehold.co/400x300/1a4d2e/ffffff?text=Thermocouple+Interface",
-    },
-    {
-        "id": 5,
-        "title": "USB-C PD Trigger Board",
-        "author": "jsmith",
-        "description": (
-            "Negotiate a fixed voltage (5V, 9V, 12V, or 20V) from any USB-C PD "
-            "supply using the HUSB238. Solder jumpers select the target voltage. "
-            "Screw terminal output, reverse-polarity protection, and an LED power "
-            "indicator. A dead-simple way to use laptop chargers as lab bench supplies."
-        ),
-        "license": "MIT",
-        "tags": ["usb-c", "power-delivery", "pd", "utility"],
-        "downloads": 876,
-        "stars": 210,
-        "uploaded": "2026-01-15",
-        "files": [
-            {"name": "pd-trigger-gerbers.zip",   "type": "Gerber",    "size": "28 KB"},
-            {"name": "pd-trigger.kicad_pcb",     "type": "KiCad PCB", "size": "134 KB"},
-            {"name": "pd-trigger-bom.csv",       "type": "BOM",       "size": "2 KB"},
-            {"name": "pd-trigger-schematic.pdf", "type": "Schematic", "size": "156 KB"},
-        ],
-        "thumbnail": "https://placehold.co/400x300/1a4d2e/ffffff?text=USB-C+PD+Trigger",
-    },
-]
+from .forms import ProjectForm
+from .models import Project
 
 
 WHY_ITEMS = [
@@ -143,25 +30,107 @@ STATS = [
     {"value": "100%",   "label": "Open source"},
 ]
 
+FILTER_LABELS = ['All', 'Microcontrollers', 'Power', 'RF', 'Sensors']
+
 
 def index(request):
+    projects = (
+        Project.objects
+        .filter(is_public=True)
+        .select_related('owner')
+        .prefetch_related('tags')
+        .order_by('-created_at')[:6]
+    )
     return render(request, 'core/index.html', {
-        'projects':   PROJECTS,
-        'why_items':  WHY_ITEMS,
-        'stats':      STATS,
+        'projects':  projects,
+        'why_items': WHY_ITEMS,
+        'stats':     STATS,
     })
 
 
-FILTER_LABELS = ['All', 'Microcontrollers', 'Power', 'RF', 'Sensors']
-
 def explore(request):
-    return render(request, 'core/explore.html', {'projects': PROJECTS, 'filter_labels': FILTER_LABELS})
+    projects = (
+        Project.objects
+        .filter(is_public=True)
+        .select_related('owner')
+        .prefetch_related('tags')
+        .order_by('-created_at')
+    )
+    return render(request, 'core/explore.html', {
+        'projects':      projects,
+        'filter_labels': FILTER_LABELS,
+    })
 
 
-def project_detail(request, id):
-    project = next((p for p in PROJECTS if p['id'] == id), None)
-    if project is None:
-        from django.http import Http404
+def project_detail(request, uuid, slug):
+    project = get_object_or_404(
+        Project.objects.select_related('owner').prefetch_related('tags', 'files'),
+        uuid=uuid,
+    )
+    # Only the owner can view a private project.
+    if not project.is_public and project.owner != request.user:
         raise Http404
-    others = [p for p in PROJECTS if p['id'] != id][:2]
-    return render(request, 'core/project_detail.html', {'project': project, 'others': others})
+    # Canonicalise the slug — 301 if stale.
+    if project.slug != slug:
+        return HttpResponsePermanentRedirect(
+            reverse('project_detail', kwargs={'uuid': project.uuid, 'slug': project.slug})
+        )
+    if project.owner:
+        others = (
+            Project.objects
+            .filter(owner=project.owner, is_public=True)
+            .exclude(pk=project.pk)
+            .prefetch_related('tags')[:2]
+        )
+    else:
+        others = []
+    return render(request, 'core/project_detail.html', {
+        'project': project,
+        'others':  others,
+    })
+
+
+class ProjectCreateView(LoginRequiredMixin, CreateView):
+    model = Project
+    form_class = ProjectForm
+    template_name = 'core/project_form.html'
+
+    def form_valid(self, form):
+        form.instance.owner = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('project_detail', kwargs={
+            'uuid': self.object.uuid,
+            'slug': self.object.slug,
+        })
+
+
+class ProjectUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Project
+    form_class = ProjectForm
+    template_name = 'core/project_form.html'
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(Project, uuid=self.kwargs['uuid'])
+
+    def test_func(self):
+        return self.get_object().owner == self.request.user
+
+    def get_success_url(self):
+        return reverse('project_detail', kwargs={
+            'uuid': self.object.uuid,
+            'slug': self.object.slug,
+        })
+
+
+class ProjectDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Project
+    template_name = 'core/project_confirm_delete.html'
+    success_url = reverse_lazy('explore')
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(Project, uuid=self.kwargs['uuid'])
+
+    def test_func(self):
+        return self.get_object().owner == self.request.user

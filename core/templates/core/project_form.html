@@ -1,0 +1,133 @@
+{% extends "core/base.html" %}
+
+{% block title %}{% if object %}Edit {{ object.title }}{% else %}New project{% endif %} — OpenPCB{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+    {% if object %}Edit project{% else %}Share a project{% endif %}
+  </h1>
+  <p class="text-sm text-gray-500 dark:text-gray-400 mb-8">
+    {% if object %}Update your project details below.{% else %}Fill in the details to publish your PCB design.{% endif %}
+  </p>
+
+  {% if form.non_field_errors %}
+    <div class="mb-6 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm chamfer">
+      {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+
+    <!-- Title -->
+    <div>
+      <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        Title <span class="text-red-500">*</span>
+      </label>
+      <input
+        type="text"
+        name="{{ form.title.html_name }}"
+        id="{{ form.title.id_for_label }}"
+        value="{{ form.title.value|default:'' }}"
+        class="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm chamfer ds-outline focus:outline-none"
+        {% if form.title.errors %}aria-invalid="true"{% endif %}
+      >
+      {% if form.title.errors %}
+        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.title.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Description -->
+    <div>
+      <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        Description
+      </label>
+      <textarea
+        name="{{ form.description.html_name }}"
+        id="{{ form.description.id_for_label }}"
+        rows="5"
+        class="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm chamfer ds-outline focus:outline-none resize-y"
+        {% if form.description.errors %}aria-invalid="true"{% endif %}
+      >{{ form.description.value|default:'' }}</textarea>
+      {% if form.description.errors %}
+        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.description.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <!-- License -->
+    <div>
+      <label for="{{ form.license.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        License <span class="text-red-500">*</span>
+      </label>
+      <select
+        name="{{ form.license.html_name }}"
+        id="{{ form.license.id_for_label }}"
+        class="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm chamfer ds-outline focus:outline-none"
+      >
+        {% for value, label in form.fields.license.choices %}
+        <option value="{{ value }}" {% if form.license.value == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      {% if form.license.errors %}
+        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.license.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Tags -->
+    <div>
+      <label for="{{ form.tags_input.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        Tags
+      </label>
+      <input
+        type="text"
+        name="{{ form.tags_input.html_name }}"
+        id="{{ form.tags_input.id_for_label }}"
+        value="{{ form.tags_input.value|default:'' }}"
+        placeholder="{{ form.tags_input.field.widget.attrs.placeholder }}"
+        class="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm chamfer ds-outline focus:outline-none"
+      >
+      <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">{{ form.tags_input.help_text }}</p>
+      {% if form.tags_input.errors %}
+        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.tags_input.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Visibility -->
+    <div class="flex items-center gap-3">
+      <input
+        type="checkbox"
+        name="{{ form.is_public.html_name }}"
+        id="{{ form.is_public.id_for_label }}"
+        class="w-4 h-4 accent-brand-600"
+        {% if form.is_public.value %}checked{% endif %}
+      >
+      <label for="{{ form.is_public.id_for_label }}" class="text-sm text-gray-700 dark:text-gray-300">
+        Make this project public
+      </label>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-3 pt-2">
+      <button type="submit"
+        class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm chamfer transition-colors">
+        {% if object %}Save changes{% else %}Publish project{% endif %}
+      </button>
+      {% if object %}
+        <a href="{% url 'project_detail' object.uuid object.slug %}"
+           class="px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+          Cancel
+        </a>
+      {% else %}
+        <a href="{% url 'explore' %}"
+           class="px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+          Cancel
+        </a>
+      {% endif %}
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}

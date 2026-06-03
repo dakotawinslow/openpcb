@@ -1,0 +1,38 @@
+{% extends "core/base.html" %}
+
+{% block title %}Delete {{ object.title }} — OpenPCB{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center px-4 py-16">
+  <div class="w-full max-w-md">
+    <div class="bg-white dark:bg-gray-900 p-8 ds-card chamfer-lg">
+
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Delete project?</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+        You're about to permanently delete:
+      </p>
+      <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-6 p-3 bg-gray-50 dark:bg-gray-800 chamfer">
+        {{ object.title }}
+      </p>
+      <p class="text-sm text-red-600 dark:text-red-400 mb-6">
+        This will also delete all uploaded files. This cannot be undone.
+      </p>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="flex items-center gap-3">
+          <button type="submit"
+            class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm chamfer transition-colors">
+            Delete
+          </button>
+          <a href="{% url 'project_detail' object.uuid object.slug %}"
+             class="px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+            Cancel
+          </a>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
