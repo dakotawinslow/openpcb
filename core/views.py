@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import F
-from django.http import Http404, HttpResponsePermanentRedirect
+from django.http import Http404, HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DeleteView, UpdateView
@@ -188,6 +188,18 @@ def photo_set_featured(request, uuid, slug, photo_id):
         photo.is_featured = True
         photo.save()
     return redirect('project_detail', uuid=project.uuid, slug=project.slug)
+
+
+@login_required
+def photo_reorder(request, uuid, slug):
+    project = _get_owned_project(request, uuid)
+    if request.method == 'POST':
+        photo_ids = request.POST.getlist('photo_id')
+        valid_pks = set(project.photos.values_list('pk', flat=True))
+        for index, photo_id in enumerate(photo_ids):
+            if int(photo_id) in valid_pks:
+                ProjectPhoto.objects.filter(pk=photo_id, project=project).update(order=index)
+    return JsonResponse({'ok': True})
 
 
 @login_required

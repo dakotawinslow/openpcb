@@ -156,10 +156,13 @@
     <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">Manage photos</h2>
 
     {% if photos %}
-    <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-4">
+    <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">Drag to reorder. The first photo is shown first in the gallery.</p>
+    <div id="photo-manage-grid" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-4"
+         data-reorder-url="{% url 'photo_reorder' project.uuid project.slug %}">
       {% for p in photos %}
-      <div class="relative aspect-square chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 ds-outline">
-        <img src="{{ p.photo.url }}" alt="" class="w-full h-full object-cover">
+      <div class="photo-manage-item relative aspect-square chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 ds-outline cursor-grab active:cursor-grabbing"
+           draggable="true" data-photo-id="{{ p.id }}">
+        <img src="{{ p.photo.url }}" alt="" class="w-full h-full object-cover pointer-events-none">
         {% if p.is_featured %}
         <span class="absolute top-1 left-1 text-[10px] font-semibold px-1.5 py-0.5 bg-brand-600 text-white chamfer-sm">
           Featured
@@ -188,9 +191,10 @@
 
     <form method="post" action="{% url 'photo_upload' project.uuid project.slug %}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3">
       {% csrf_token %}
-      <input type="file" name="photos" multiple accept="image/jpeg,image/png,image/webp,image/gif"
+      <input type="file" name="photos" id="photo-upload-input" multiple accept="image/jpeg,image/png,image/webp,image/gif"
              class="text-sm text-gray-600 dark:text-gray-400 file:mr-3 file:px-3 file:py-1.5 file:chamfer-sm file:border-0 file:bg-brand-50 dark:file:bg-brand-900 file:text-brand-700 dark:file:text-brand-400 file:text-sm file:font-medium file:cursor-pointer">
-      <button type="submit" class="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold chamfer transition-colors flex-shrink-0">
+      <button type="submit" id="photo-upload-btn" disabled
+              class="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-200 dark:disabled:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-600 disabled:hover:bg-gray-200 dark:disabled:hover:bg-gray-800 disabled:cursor-not-allowed text-white text-sm font-semibold chamfer transition-colors flex-shrink-0">
         Upload
       </button>
     </form>
@@ -299,9 +303,10 @@
         <div class="px-5 py-4 border-t border-gray-100 dark:border-gray-800">
           <form method="post" action="{% url 'file_upload' project.uuid project.slug %}" enctype="multipart/form-data" class="space-y-2">
             {% csrf_token %}
-            <input type="file" name="files" multiple
+            <input type="file" name="files" id="file-upload-input" multiple
                    class="block w-full text-xs text-gray-600 dark:text-gray-400 file:mr-3 file:px-3 file:py-1.5 file:chamfer-sm file:border-0 file:bg-brand-50 dark:file:bg-brand-900 file:text-brand-700 dark:file:text-brand-400 file:text-xs file:font-medium file:cursor-pointer">
-            <button type="submit" class="w-full px-4 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold chamfer transition-colors">
+            <button type="submit" id="file-upload-btn" disabled
+                    class="w-full px-4 py-1.5 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-200 dark:disabled:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-600 disabled:hover:bg-gray-200 dark:disabled:hover:bg-gray-800 disabled:cursor-not-allowed text-white text-sm font-semibold chamfer transition-colors">
               Upload files
             </button>
           </form>
@@ -313,6 +318,63 @@
     </div>
 
   </div>
+
+  {% if user == project.owner %}
+  <script>
+    (function () {
+      function enableOnFileSelect(inputId, buttonId) {
+        var input = document.getElementById(inputId);
+        var button = document.getElementById(buttonId);
+        if (!input || !button) return;
+        input.addEventListener('change', function () {
+          button.disabled = input.files.length === 0;
+        });
+      }
+      enableOnFileSelect('photo-upload-input', 'photo-upload-btn');
+      enableOnFileSelect('file-upload-input', 'file-upload-btn');
+
+      // Drag-and-drop photo reordering
+      var grid = document.getElementById('photo-manage-grid');
+      if (grid) {
+        var dragged = null;
+
+        grid.querySelectorAll('.photo-manage-item').forEach(function (item) {
+          item.addEventListener('dragstart', function () {
+            dragged = item;
+            item.classList.add('opacity-40');
+          });
+          item.addEventListener('dragend', function () {
+            item.classList.remove('opacity-40');
+            dragged = null;
+            saveOrder();
+          });
+          item.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            if (!dragged || dragged === item) return;
+            var rect = item.getBoundingClientRect();
+            var insertAfter = (e.clientX - rect.left) > rect.width / 2;
+            grid.insertBefore(dragged, insertAfter ? item.nextSibling : item);
+          });
+        });
+
+        function saveOrder() {
+          var ids = Array.prototype.map.call(
+            grid.querySelectorAll('.photo-manage-item'),
+            function (el) { return el.dataset.photoId; }
+          );
+          var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+          var formData = new FormData();
+          ids.forEach(function (id) { formData.append('photo_id', id); });
+          fetch(grid.dataset.reorderUrl, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+            body: formData,
+          });
+        }
+      }
+    }());
+  </script>
+  {% endif %}
 
   <!-- ── Order This Board ───────────────────────────────────────── -->
   <div class="mb-12 opacity-60">
