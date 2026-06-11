@@ -156,7 +156,7 @@
     <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">Manage photos</h2>
 
     {% if photos %}
-    <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">Drag to reorder. The first photo is shown first in the gallery.</p>
+    <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">Drag to reorder. Changes are saved automatically.</p>
     <div id="photo-manage-grid" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-4"
          data-reorder-url="{% url 'photo_reorder' project.uuid project.slug %}">
       {% for p in photos %}
