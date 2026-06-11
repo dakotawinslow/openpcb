@@ -113,6 +113,13 @@ STORAGES = {
             "default_acl": None,
             "file_overwrite": False,
             "signature_version": "s3v4",
+            # Private-project confidentiality depends on this: every generated
+            # URL is signed and short-lived, so objects are never reachable by
+            # guessing the (predictable) projects/<id>/<name> path. Keep the R2
+            # bucket itself private — do not attach a public r2.dev / custom
+            # domain to it.
+            "querystring_auth": True,
+            "querystring_expire": 3600,
         },
     },
     "staticfiles": {
