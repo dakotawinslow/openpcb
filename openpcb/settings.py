@@ -10,6 +10,12 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env('DJANGO_DEBUG')
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 
+# Behind an HTTPS-terminating reverse proxy, Django's CSRF check compares the
+# request Origin against this list — without the deployed origin here, every
+# POST (login, signup, uploads) is rejected with 403. Comma-separated, each
+# entry includes the scheme, e.g. https://alpha.openpcb.com.
+CSRF_TRUSTED_ORIGINS = env.list('DJANGO_CSRF_TRUSTED_ORIGINS', default=[])
+
 # Production hardening — off by default so local HTTP dev keeps working.
 # Set DJANGO_SSL=True once the site is served over HTTPS (e.g. behind a
 # reverse proxy that terminates TLS).
