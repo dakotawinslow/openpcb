@@ -313,6 +313,7 @@ demo phase, flag it and confirm before proceeding.
 | 2026-05-31 | CSS custom properties | `--brand-*-rgb` / `--copper-*-rgb` vars are now derived from the Tailwind config via an inline script in `base.html`. Never duplicate hex values in a manual `:root` block — the Tailwind config is the single source of truth. |
 | 2026-05-31 | Gallery JS scoping | All `<script>` blocks in templates must be wrapped in an IIFE. Functions called from inline `onclick=` must be assigned to `window`. Prevents SyntaxError on HTMX re-swap. |
 | 2026-05-31 | Bug sweep | 10 GitHub issues filed and resolved: hardcoded hrefs → `{% url %}`, gallery thumbnail hover state, JS globals, palette duplication, prev/next button visibility, redundant inline styles, duplicate image URL array. All merged to main. |
+| 2026-06-11 | File Uploads sprint | Photo/file upload, delete, and download views added. First photo a user uploads is auto-marked featured (so a thumbnail exists as soon as a project has one photo). Photo/file management lives in owner-only panels on `project_detail.html` (grid with "Set featured"/delete controls), not in `ProjectForm`. Validation (extension allowlist + size caps) lives in `core/constants.py` and `forms.py` `clean_*` methods. Downloads are session-deduplicated and redirect to pre-signed R2 URLs (`expire=60`). |
 
 ---
 

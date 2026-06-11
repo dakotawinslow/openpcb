@@ -1,7 +1,16 @@
+import os
+
 from django import forms
+from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 
-from .models import Project, Tag
+from .constants import (
+    ALLOWED_FILE_EXTENSIONS,
+    ALLOWED_IMAGE_EXTENSIONS,
+    MAX_FILE_SIZE_BYTES,
+    MAX_IMAGE_SIZE_BYTES,
+)
+from .models import Project, ProjectFile, ProjectPhoto, Tag
 
 
 class ProjectForm(forms.ModelForm):
@@ -31,3 +40,33 @@ class ProjectForm(forms.ModelForm):
             tags = [Tag.objects.get_or_create(name=name)[0] for name in tag_names]
             project.tags.set(tags)
         return project
+
+
+class ProjectFileForm(forms.ModelForm):
+    class Meta:
+        model = ProjectFile
+        fields = ['file']
+
+    def clean_file(self):
+        f = self.cleaned_data['file']
+        ext = os.path.splitext(f.name)[1].lower()
+        if ext not in ALLOWED_FILE_EXTENSIONS:
+            raise ValidationError(f'"{ext}" is not an allowed file type.')
+        if f.size > MAX_FILE_SIZE_BYTES:
+            raise ValidationError('File is too large (max 100MB).')
+        return f
+
+
+class ProjectPhotoForm(forms.ModelForm):
+    class Meta:
+        model = ProjectPhoto
+        fields = ['photo']
+
+    def clean_photo(self):
+        f = self.cleaned_data['photo']
+        ext = os.path.splitext(f.name)[1].lower()
+        if ext not in ALLOWED_IMAGE_EXTENSIONS:
+            raise ValidationError(f'"{ext}" is not an allowed image type.')
+        if f.size > MAX_IMAGE_SIZE_BYTES:
+            raise ValidationError('Image is too large (max 20MB).')
+        return f
