@@ -11,23 +11,74 @@
     <p class="text-gray-500 dark:text-gray-400">Open-source PCB designs, ready to download and order.</p>
   </div>
 
-  <!-- Filter buttons (dead links for now — filtering comes in a later phase) -->
+  <!-- Search + sort -->
+  <form method="get" class="flex flex-wrap items-center gap-3 mb-6">
+    {% if tag %}<input type="hidden" name="tag" value="{{ tag }}">{% endif %}
+    <input type="text" name="q" value="{{ q }}" placeholder="Search designs..."
+           class="flex-1 min-w-[200px] px-4 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white chamfer ds-outline placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none">
+    <select name="sort" onchange="this.form.submit()"
+            class="px-4 py-2 text-sm bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 chamfer ds-outline focus:outline-none">
+      <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
+      <option value="downloads" {% if sort == 'downloads' %}selected{% endif %}>Most Downloaded</option>
+      <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest</option>
+    </select>
+    <button type="submit"
+            class="px-4 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white chamfer transition-colors">
+      Search
+    </button>
+  </form>
+
+  <!-- Tag filters -->
   <div class="flex items-center gap-2 flex-wrap mb-8">
-    {% for label in filter_labels %}
-    {% if forloop.first %}
-    <button class="px-4 py-1.5 text-sm chamfer-sm bg-brand-600 text-white font-medium cursor-default">{{ label }}</button>
-    {% else %}
-    <button class="px-4 py-1.5 text-sm chamfer-sm bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors ds-outline">{{ label }}</button>
-    {% endif %}
+    <a href="{% url 'explore' %}{% if notag_qs %}?{{ notag_qs }}{% endif %}"
+       class="px-4 py-1.5 text-sm chamfer-sm transition-colors
+       {% if not tag %}bg-brand-600 text-white font-medium{% else %}bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 ds-outline{% endif %}">
+      All
+    </a>
+    {% for t in tags %}
+    <a href="{% url 'explore' %}?{% if notag_qs %}{{ notag_qs }}&{% endif %}tag={{ t.name }}"
+       class="px-4 py-1.5 text-sm chamfer-sm transition-colors
+       {% if tag == t.name %}bg-brand-600 text-white font-medium{% else %}bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 ds-outline{% endif %}">
+      {{ t.name }}
+    </a>
     {% endfor %}
   </div>
 
   <!-- Project grid -->
+  {% if page_obj.object_list %}
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-    {% for project in projects %}
+    {% for project in page_obj %}
       {% include "core/_card.html" %}
     {% endfor %}
   </div>
+  {% else %}
+  <div class="text-center py-20">
+    <p class="text-gray-500 dark:text-gray-400">
+      No designs found{% if q %} for "{{ q }}"{% endif %}{% if tag %} tagged "{{ tag }}"{% endif %}.
+    </p>
+  </div>
+  {% endif %}
+
+  <!-- Pagination -->
+  {% if page_obj.paginator.num_pages > 1 %}
+  <div class="flex items-center justify-center gap-2 mt-10">
+    {% if page_obj.has_previous %}
+    <a href="?{% if base_qs %}{{ base_qs }}&{% endif %}page={{ page_obj.previous_page_number }}"
+       class="px-4 py-1.5 text-sm bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 chamfer-sm ds-outline transition-colors">
+      Previous
+    </a>
+    {% endif %}
+    <span class="px-4 py-1.5 text-sm text-gray-500 dark:text-gray-400">
+      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    </span>
+    {% if page_obj.has_next %}
+    <a href="?{% if base_qs %}{{ base_qs }}&{% endif %}page={{ page_obj.next_page_number }}"
+       class="px-4 py-1.5 text-sm bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 chamfer-sm ds-outline transition-colors">
+      Next
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
 
 </div>
 {% endblock %}

@@ -1,7 +1,8 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models import F
+from django.core.paginator import Paginator
+from django.db.models import F, Q
 from django.http import Http404, HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -9,7 +10,7 @@ from django.views.generic import CreateView, DeleteView, UpdateView
 
 from .constants import MAX_FILES_PER_PROJECT, MAX_PHOTOS_PER_PROJECT, detect_file_type
 from .forms import ProjectForm, ProjectFileForm, ProjectPhotoForm
-from .models import Project, ProjectFile, ProjectPhoto
+from .models import Project, ProjectFile, ProjectPhoto, Tag
 
 
 WHY_ITEMS = [
@@ -34,7 +35,11 @@ STATS = [
     {"value": "100%",   "label": "Open source"},
 ]
 
-FILTER_LABELS = ['All', 'Microcontrollers', 'Power', 'RF', 'Sensors']
+SORT_OPTIONS = {
+    'newest':    '-created_at',
+    'oldest':    'created_at',
+    'downloads': '-download_count',
+}
 
 
 def index(request):
@@ -53,16 +58,49 @@ def index(request):
 
 
 def explore(request):
+    q = request.GET.get('q', '').strip()
+    tag = request.GET.get('tag', '').strip()
+    sort = request.GET.get('sort', 'newest')
+    if sort not in SORT_OPTIONS:
+        sort = 'newest'
+
     projects = (
         Project.objects
         .filter(is_public=True)
         .select_related('owner')
         .prefetch_related('tags')
-        .order_by('-created_at')
+        .order_by(SORT_OPTIONS[sort])
     )
+
+    if q:
+        projects = projects.filter(Q(title__icontains=q) | Q(description__icontains=q))
+
+    if tag:
+        projects = projects.filter(tags__name=tag)
+
+    if q or tag:
+        projects = projects.distinct()
+
+    paginator = Paginator(projects, 24)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    # Querystrings for links that preserve the current filters.
+    params = request.GET.copy()
+    params.pop('page', None)
+    base_qs = params.urlencode()
+    params.pop('tag', None)
+    notag_qs = params.urlencode()
+
+    tags = Tag.objects.filter(project__is_public=True).distinct()
+
     return render(request, 'core/explore.html', {
-        'projects':      projects,
-        'filter_labels': FILTER_LABELS,
+        'page_obj':  page_obj,
+        'q':         q,
+        'tag':       tag,
+        'sort':      sort,
+        'tags':      tags,
+        'base_qs':   base_qs,
+        'notag_qs':  notag_qs,
     })
 
 

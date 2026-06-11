@@ -1,6 +1,6 @@
 {% load static %}
-<a href="{% url 'project_detail' project.uuid project.slug %}"
-   class="group block bg-white dark:bg-gray-900 overflow-hidden chamfer-lg ds-card hover:-translate-y-0.5 transition-transform duration-200">
+<div class="bg-white dark:bg-gray-900 overflow-hidden chamfer-lg ds-card hover:-translate-y-0.5 transition-transform duration-200">
+<a href="{% url 'project_detail' project.uuid project.slug %}" class="group block">
 
   <!-- Thumbnail -->
   <div class="aspect-[4/3] overflow-hidden">
@@ -16,7 +16,7 @@
   </div>
 
   <!-- Content -->
-  <div class="p-4">
+  <div class="p-4 pb-2">
 
     <h3 class="font-semibold text-gray-900 dark:text-white text-sm leading-tight mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
       {{ project.title }}
@@ -37,7 +37,7 @@
     </div>
 
     <!-- Download count -->
-    <div class="flex items-center gap-4 mb-3 text-xs text-gray-500 dark:text-gray-400">
+    <div class="flex items-center gap-4 mb-1 text-xs text-gray-500 dark:text-gray-400">
       <span class="flex items-center gap-1">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -47,14 +47,17 @@
       </span>
     </div>
 
-    <!-- Tags -->
-    <div class="flex flex-wrap gap-1">
-      {% for tag in project.tags.all|slice:":3" %}
-      <span class="text-xs bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-400 px-2 py-0.5 chamfer-sm ds-outline-brand">
-        {{ tag.name }}
-      </span>
-      {% endfor %}
-    </div>
-
   </div>
 </a>
+
+  <!-- Tags -->
+  <div class="px-4 pb-4 flex flex-wrap gap-1">
+    {% for tag in project.tags.all|slice:":3" %}
+    <a href="{% url 'explore' %}?tag={{ tag.name }}"
+       class="text-xs bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-400 px-2 py-0.5 chamfer-sm ds-outline-brand hover:bg-brand-100 dark:hover:bg-brand-800 transition-colors">
+      {{ tag.name }}
+    </a>
+    {% endfor %}
+  </div>
+
+</div>
