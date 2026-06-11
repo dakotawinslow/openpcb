@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db.models import F, Q
 from django.http import Http404, HttpResponsePermanentRedirect, JsonResponse
@@ -10,7 +11,7 @@ from django.views.generic import CreateView, DeleteView, UpdateView
 
 from .constants import MAX_FILES_PER_PROJECT, MAX_PHOTOS_PER_PROJECT, detect_file_type
 from .forms import ProjectForm, ProjectFileForm, ProjectPhotoForm
-from .models import Project, ProjectFile, ProjectPhoto, Tag
+from .models import Profile, Project, ProjectFile, ProjectPhoto, Tag
 
 
 WHY_ITEMS = [
@@ -101,6 +102,26 @@ def explore(request):
         'tags':      tags,
         'base_qs':   base_qs,
         'notag_qs':  notag_qs,
+    })
+
+
+def profile_view(request, username):
+    profile_user = get_object_or_404(User, username=username)
+    profile, _ = Profile.objects.get_or_create(user=profile_user)
+
+    projects = (
+        Project.objects
+        .filter(owner=profile_user)
+        .prefetch_related('tags')
+        .order_by('-created_at')
+    )
+    if request.user != profile_user:
+        projects = projects.filter(is_public=True)
+
+    return render(request, 'core/profile.html', {
+        'profile_user': profile_user,
+        'profile':      profile,
+        'projects':     projects,
     })
 
 

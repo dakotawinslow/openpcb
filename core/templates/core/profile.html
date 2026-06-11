@@ -1,0 +1,42 @@
+{% extends "core/base.html" %}
+
+{% block title %}{{ profile_user.username }} — OpenPCB{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+  <!-- Profile header -->
+  <div class="flex items-center gap-4 mb-10">
+    <div class="w-16 h-16 bg-brand-100 dark:bg-brand-900 flex items-center justify-center flex-shrink-0 chamfer-lg">
+      <span class="text-brand-700 dark:text-brand-400 text-2xl font-bold leading-none">{{ profile_user.username|slice:":1"|upper }}</span>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ profile_user.username }}</h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Joined {{ profile_user.date_joined|date:"F Y" }}</p>
+      {% if profile.bio %}
+      <p class="text-sm text-gray-600 dark:text-gray-400 mt-2 max-w-xl">{{ profile.bio }}</p>
+      {% endif %}
+      {% if profile.website %}
+      <a href="{{ profile.website }}" target="_blank" rel="noopener"
+         class="text-sm text-brand-600 dark:text-brand-400 hover:underline mt-1 inline-block">
+        {{ profile.website }}
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Projects -->
+  {% if projects %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for project in projects %}
+      {% include "core/_card.html" %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-20">
+    <p class="text-gray-500 dark:text-gray-400">No projects yet.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

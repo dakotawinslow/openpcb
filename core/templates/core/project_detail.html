@@ -36,18 +36,21 @@
     <!-- Meta row: author · date · license -->
     <div class="flex flex-wrap items-center gap-3 mb-4">
 
-      <div class="flex items-center gap-1.5">
+      {% if project.owner %}
+      <a href="{% url 'profile' project.owner.username %}" class="flex items-center gap-1.5 hover:underline">
         <div class="w-6 h-6 bg-brand-100 dark:bg-brand-900 flex items-center justify-center flex-shrink-0 chamfer-sm">
-          {% if project.owner %}
-            <span class="text-brand-700 dark:text-brand-400 text-xs font-semibold leading-none">{{ project.owner.username|slice:":1"|upper }}</span>
-          {% else %}
-            <span class="text-gray-400 text-xs font-semibold leading-none">?</span>
-          {% endif %}
+          <span class="text-brand-700 dark:text-brand-400 text-xs font-semibold leading-none">{{ project.owner.username|slice:":1"|upper }}</span>
         </div>
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {% if project.owner %}{{ project.owner.username }}{% else %}deleted user{% endif %}
-        </span>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ project.owner.username }}</span>
+      </a>
+      {% else %}
+      <div class="flex items-center gap-1.5">
+        <div class="w-6 h-6 bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0 chamfer-sm">
+          <span class="text-gray-400 text-xs font-semibold leading-none">?</span>
+        </div>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">deleted user</span>
       </div>
+      {% endif %}
 
       <span class="text-gray-300 dark:text-gray-600">·</span>
       <span class="text-sm text-gray-500 dark:text-gray-400">{{ project.created_at|date:"Y-m-d" }}</span>
@@ -417,7 +420,8 @@
   {% if others %}
   <div>
     <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-      More by <span class="text-brand-600 dark:text-brand-400">{{ project.owner.username }}</span>
+      More by
+      <a href="{% url 'profile' project.owner.username %}" class="text-brand-600 dark:text-brand-400 hover:underline">{{ project.owner.username }}</a>
     </h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {% for project in others %}

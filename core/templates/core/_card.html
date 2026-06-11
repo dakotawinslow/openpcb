@@ -1,9 +1,8 @@
 {% load static %}
 <div class="bg-white dark:bg-gray-900 overflow-hidden chamfer-lg ds-card hover:-translate-y-0.5 transition-transform duration-200">
-<a href="{% url 'project_detail' project.uuid project.slug %}" class="group block">
 
-  <!-- Thumbnail -->
-  <div class="aspect-[4/3] overflow-hidden">
+  <!-- Thumbnail (links to project) -->
+  <a href="{% url 'project_detail' project.uuid project.slug %}" class="group block aspect-[4/3] overflow-hidden">
     {% if project.thumbnail %}
       <img src="{{ project.thumbnail.url }}" alt="{{ project.title }}"
            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
@@ -13,30 +12,35 @@
         <img src="{% static 'logo.svg' %}" alt="" class="w-10 h-10 opacity-20 dark:opacity-10 select-none">
       </div>
     {% endif %}
-  </div>
+  </a>
 
   <!-- Content -->
   <div class="p-4 pb-2">
 
-    <h3 class="font-semibold text-gray-900 dark:text-white text-sm leading-tight mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
-      {{ project.title }}
-    </h3>
+    <a href="{% url 'project_detail' project.uuid project.slug %}" class="group block">
+      <h3 class="font-semibold text-gray-900 dark:text-white text-sm leading-tight mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+        {{ project.title }}
+      </h3>
+    </a>
 
-    <!-- Author avatar + handle -->
-    <div class="flex items-center gap-1.5 mb-3">
+    <!-- Author avatar + handle (links to profile) -->
+    {% if project.owner %}
+    <a href="{% url 'profile' project.owner.username %}" class="flex items-center gap-1.5 mb-3 w-fit hover:underline">
       <div class="w-5 h-5 bg-brand-100 dark:bg-brand-900 flex items-center justify-center flex-shrink-0 chamfer-sm">
-        {% if project.owner %}
-          <span class="text-brand-700 dark:text-brand-400 text-xs font-semibold leading-none">{{ project.owner.username|slice:":1"|upper }}</span>
-        {% else %}
-          <span class="text-gray-400 text-xs font-semibold leading-none">?</span>
-        {% endif %}
+        <span class="text-brand-700 dark:text-brand-400 text-xs font-semibold leading-none">{{ project.owner.username|slice:":1"|upper }}</span>
       </div>
-      <span class="text-xs text-gray-500 dark:text-gray-400">
-        {% if project.owner %}{{ project.owner.username }}{% else %}deleted user{% endif %}
-      </span>
+      <span class="text-xs text-gray-500 dark:text-gray-400">{{ project.owner.username }}</span>
+    </a>
+    {% else %}
+    <div class="flex items-center gap-1.5 mb-3">
+      <div class="w-5 h-5 bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0 chamfer-sm">
+        <span class="text-gray-400 text-xs font-semibold leading-none">?</span>
+      </div>
+      <span class="text-xs text-gray-500 dark:text-gray-400">deleted user</span>
     </div>
+    {% endif %}
 
-    <!-- Download count -->
+    <!-- Download count + visibility -->
     <div class="flex items-center gap-4 mb-1 text-xs text-gray-500 dark:text-gray-400">
       <span class="flex items-center gap-1">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,10 +49,14 @@
         </svg>
         {{ project.download_count }}
       </span>
+      {% if not project.is_public %}
+      <span class="text-xs font-medium px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 chamfer-sm ds-outline">
+        Private
+      </span>
+      {% endif %}
     </div>
 
   </div>
-</a>
 
   <!-- Tags -->
   <div class="px-4 pb-4 flex flex-wrap gap-1">

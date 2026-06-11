@@ -132,7 +132,12 @@
       <div class="flex items-center gap-6">
         <a href="{% url 'explore' %}" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Explore</a>
         {% if user.is_authenticated %}
-          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ user.username }}</span>
+          <a href="{% url 'profile' user.username %}" class="flex items-center gap-1.5 hover:underline">
+            <div class="w-6 h-6 bg-brand-100 dark:bg-brand-900 flex items-center justify-center flex-shrink-0 chamfer-sm">
+              <span class="text-brand-700 dark:text-brand-400 text-xs font-semibold leading-none">{{ user.username|slice:":1"|upper }}</span>
+            </div>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ user.username }}</span>
+          </a>
           <form method="post" action="{% url 'account_logout' %}" class="inline">
             {% csrf_token %}
             <button type="submit" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
