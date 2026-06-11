@@ -18,9 +18,16 @@ SECURE_SSL_REDIRECT = DJANGO_SSL
 SESSION_COOKIE_SECURE = DJANGO_SSL
 CSRF_COOKIE_SECURE = DJANGO_SSL
 if DJANGO_SSL:
+    # TLS is terminated at the reverse proxy, so requests reach Django over
+    # plain HTTP. Trust the proxy's forwarded scheme — without this,
+    # request.is_secure() is always False and SECURE_SSL_REDIRECT loops forever.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_HSTS_SECONDS = 60 * 60 * 24 * 7  # 1 week; raise once HTTPS is confirmed stable
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    # Preload requires max-age >= 1 year, so leave it off until the line above
+    # is raised — sending `preload` now is ignored at best, a premature
+    # HTTPS-only commitment at worst.
+    SECURE_HSTS_PRELOAD = False
 
 INSTALLED_APPS = [
     'django.contrib.admin',
