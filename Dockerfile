@@ -11,4 +11,9 @@ RUN uv sync --frozen --no-install-project
 
 COPY . .
 
-CMD ["uv", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Production default: gunicorn behind the reverse proxy. The entrypoint runs
+# migrate + collectstatic first. Local dev overrides both in docker-compose.yml
+# to keep runserver's hot-reload. --timeout 120 accommodates large file uploads.
+ENTRYPOINT ["sh", "/app/docker-entrypoint.sh"]
+CMD ["uv", "run", "gunicorn", "openpcb.wsgi:application", \
+     "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]

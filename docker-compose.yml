@@ -9,6 +9,10 @@ services:
       - db
     env_file:
       - .env
+    # Local dev: bypass the production entrypoint (gunicorn + migrate +
+    # collectstatic) and run Django's auto-reloading dev server instead.
+    entrypoint: []
+    command: uv run python manage.py runserver 0.0.0.0:8000
 
   db:
     image: postgres:16
