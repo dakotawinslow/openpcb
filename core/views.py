@@ -264,7 +264,9 @@ def photo_reorder(request, uuid, slug):
         photo_ids = request.POST.getlist('photo_id')
         valid_pks = set(project.photos.values_list('pk', flat=True))
         for index, photo_id in enumerate(photo_ids):
-            if int(photo_id) in valid_pks:
+            # photo_id is attacker-controllable POST data — guard the int()
+            # cast so a non-numeric value can't raise an unhandled 500.
+            if photo_id.isdigit() and int(photo_id) in valid_pks:
                 ProjectPhoto.objects.filter(pk=photo_id, project=project).update(order=index)
     return JsonResponse({'ok': True})
 
