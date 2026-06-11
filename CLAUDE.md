@@ -314,6 +314,7 @@ demo phase, flag it and confirm before proceeding.
 | 2026-05-31 | Gallery JS scoping | All `<script>` blocks in templates must be wrapped in an IIFE. Functions called from inline `onclick=` must be assigned to `window`. Prevents SyntaxError on HTMX re-swap. |
 | 2026-05-31 | Bug sweep | 10 GitHub issues filed and resolved: hardcoded hrefs → `{% url %}`, gallery thumbnail hover state, JS globals, palette duplication, prev/next button visibility, redundant inline styles, duplicate image URL array. All merged to main. |
 | 2026-06-11 | File Uploads sprint | Photo/file upload, delete, and download views added. First photo a user uploads is auto-marked featured (so a thumbnail exists as soon as a project has one photo). Photo/file management lives in owner-only panels on `project_detail.html` (grid with "Set featured"/delete controls), not in `ProjectForm`. Validation (extension allowlist + size caps) lives in `core/constants.py` and `forms.py` `clean_*` methods. Downloads are session-deduplicated and redirect to pre-signed R2 URLs (`expire=60`). |
+| 2026-06-11 | Dual ID system kept | `Project.id` (integer PK) remains the canonical identifier for all FKs (ProjectFile, ProjectPhoto, tags M2M) and R2 storage paths (`projects/<id>/...`). `Project.uuid` remains scoped to public-facing identifiers (URLs only). Considered consolidating to a UUID-only PK; rejected — integer PK keeps FKs/indexes compact, and `id` is not vestigial since it's the real PK, not a parallel unused field. |
 
 ---
 
