@@ -48,11 +48,11 @@
     </p>
 
     <div class="flex flex-wrap items-center justify-center gap-4">
-      <a href="/explore/"
+      <a href="{% url 'explore' %}"
          class="px-8 py-3 text-base font-semibold bg-brand-600 hover:bg-brand-700 text-white chamfer transition-colors">
         Explore Designs
       </a>
-      <a href="#" title="Coming soon"
+      <a href="{% url 'project_create' %}"
          class="px-8 py-3 text-base font-semibold bg-copper-500 hover:bg-copper-600 text-white chamfer transition-colors">
         Upload Your Board
       </a>
@@ -155,7 +155,7 @@
 
     <div class="flex items-center justify-between mb-8">
       <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Featured designs</h2>
-      <a href="/explore/" class="text-sm font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors flex items-center gap-1">
+      <a href="{% url 'explore' %}" class="text-sm font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors flex items-center gap-1">
         See all designs
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>

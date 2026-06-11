@@ -10,6 +10,18 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env('DJANGO_DEBUG')
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 
+# Production hardening — off by default so local HTTP dev keeps working.
+# Set DJANGO_SSL=True once the site is served over HTTPS (e.g. behind a
+# reverse proxy that terminates TLS).
+DJANGO_SSL = env.bool('DJANGO_SSL', default=False)
+SECURE_SSL_REDIRECT = DJANGO_SSL
+SESSION_COOKIE_SECURE = DJANGO_SSL
+CSRF_COOKIE_SECURE = DJANGO_SSL
+if DJANGO_SSL:
+    SECURE_HSTS_SECONDS = 60 * 60 * 24 * 7  # 1 week; raise once HTTPS is confirmed stable
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

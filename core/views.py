@@ -169,16 +169,27 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         })
 
 
-class ProjectUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class OwnerOnlyMixin(UserPassesTestMixin):
+    """404s (rather than 403s) for authenticated non-owners — matches
+    project_detail's behavior so owner-only URLs don't leak that a
+    private project exists."""
+
+    def test_func(self):
+        return self.get_object().owner == self.request.user
+
+    def handle_no_permission(self):
+        if self.request.user.is_authenticated:
+            raise Http404
+        return super().handle_no_permission()
+
+
+class ProjectUpdateView(LoginRequiredMixin, OwnerOnlyMixin, UpdateView):
     model = Project
     form_class = ProjectForm
     template_name = 'core/project_form.html'
 
     def get_object(self, queryset=None):
         return get_object_or_404(Project, uuid=self.kwargs['uuid'])
-
-    def test_func(self):
-        return self.get_object().owner == self.request.user
 
     def get_success_url(self):
         return reverse('project_detail', kwargs={
@@ -187,16 +198,13 @@ class ProjectUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         })
 
 
-class ProjectDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+class ProjectDeleteView(LoginRequiredMixin, OwnerOnlyMixin, DeleteView):
     model = Project
     template_name = 'core/project_confirm_delete.html'
     success_url = reverse_lazy('explore')
 
     def get_object(self, queryset=None):
         return get_object_or_404(Project, uuid=self.kwargs['uuid'])
-
-    def test_func(self):
-        return self.get_object().owner == self.request.user
 
 
 def _get_owned_project(request, uuid):
