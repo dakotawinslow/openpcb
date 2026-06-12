@@ -257,9 +257,12 @@ to `window`; declarations inside an IIFE are not visible in global scope.
 - The app runs at `http://localhost:8000`.
 - `docker compose up` should always be the single command needed to start the
   full environment.
-- `docker-compose.yml` has a `web` service and a `db` service (Postgres 16).
-  Copy `.env.example` to `.env` before first run — settings are loaded via
-  `django-environ` from that file.
+- `docker-compose.yml` has a `web`/`web-dev` service pair (Postgres 16 is
+  `db`). `COMPOSE_PROFILES` in `.env` selects which `web` variant runs —
+  `dev` for hot-reloading `runserver`, `prod` for gunicorn + migrate +
+  collectstatic. `docker compose up` is the same command either way; only
+  `.env` differs. Copy `.env.example` to `.env` before first run (defaults to
+  `dev`) — settings are loaded via `django-environ` from that file.
 - Static files are served by **WhiteNoise** — no separate static file server
   or Nginx is needed in development or demo deployment.
 
@@ -315,6 +318,7 @@ demo phase, flag it and confirm before proceeding.
 | 2026-05-31 | Bug sweep | 10 GitHub issues filed and resolved: hardcoded hrefs → `{% url %}`, gallery thumbnail hover state, JS globals, palette duplication, prev/next button visibility, redundant inline styles, duplicate image URL array. All merged to main. |
 | 2026-06-11 | File Uploads sprint | Photo/file upload, delete, and download views added. First photo a user uploads is auto-marked featured (so a thumbnail exists as soon as a project has one photo). Photo/file management lives in owner-only panels on `project_detail.html` (grid with "Set featured"/delete controls), not in `ProjectForm`. Validation (extension allowlist + size caps) lives in `core/constants.py` and `forms.py` `clean_*` methods. Downloads are session-deduplicated and redirect to pre-signed R2 URLs (`expire=60`). |
 | 2026-06-11 | Dual ID system kept | `Project.id` (integer PK) remains the canonical identifier for all FKs (ProjectFile, ProjectPhoto, tags M2M) and R2 storage paths (`projects/<id>/...`). `Project.uuid` remains scoped to public-facing identifiers (URLs only). Considered consolidating to a UUID-only PK; rejected — integer PK keeps FKs/indexes compact, and `id` is not vestigial since it's the real PK, not a parallel unused field. |
+| 2026-06-12 | Dev/prod compose split | First prod deploy (`styx`) used the dev `web` service unmodified — it bypassed `docker-entrypoint.sh`, so `migrate`/`collectstatic` never ran and the site 500'd on every page (missing staticfiles manifest). Fixed by splitting `docker-compose.yml` into `web` (prod, gunicorn + entrypoint) and `web-dev` (hot-reload `runserver` + bind mount), selected via `COMPOSE_PROFILES` in `.env`. `docker compose up` is unchanged for both; only `.env` differs — see issue #13. |
 
 ---
 
