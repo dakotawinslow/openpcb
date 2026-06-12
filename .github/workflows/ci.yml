@@ -25,12 +25,18 @@ jobs:
           --health-retries 5
 
     env:
-      # Dummy values — sufficient for `manage.py test`. STORAGES falls back to
-      # in-memory storage in test mode, so no R2 credentials are needed here.
+      # Dummy values — sufficient for `manage.py test` and `manage.py check`.
+      # STORAGES falls back to in-memory storage in test mode, so these R2
+      # values are never used to make a real connection — `check` just
+      # needs them present to build the settings dict.
       DJANGO_SECRET_KEY: ci-test-secret-key
       DJANGO_DEBUG: 'False'
       DJANGO_ALLOWED_HOSTS: localhost
       DATABASE_URL: postgres://openpcb:postgres@localhost:5432/openpcb
+      R2_ACCESS_KEY_ID: ci-dummy
+      R2_SECRET_ACCESS_KEY: ci-dummy
+      R2_BUCKET_NAME: ci-dummy
+      R2_ENDPOINT_URL: https://ci-dummy.example.com
 
     steps:
       - uses: actions/checkout@v4
@@ -43,11 +49,5 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
 
-      - name: Lint
-        run: uv run ruff check .
-
-      - name: Format check
-        run: uv run ruff format --check .
-
-      - name: Run tests
-        run: uv run python manage.py test
+      - name: Run checks
+        run: sh scripts/check.sh

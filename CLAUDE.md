@@ -100,7 +100,8 @@ openpcb/                        ← repo root, also Django project root
 ├── manage.py
 ├── .env.example                ← copy to .env before first run
 ├── .pre-commit-config.yaml     ← optional local ruff hooks (see "Running tests and lint")
-├── .github/workflows/ci.yml    ← ruff + test suite on push/PR to main
+├── .github/workflows/ci.yml    ← runs scripts/check.sh on push/PR to main
+├── scripts/check.sh            ← lint + format check + manage.py check + tests, run by CI
 ├── assets/                      ← source images (logo, palette) used as static files
 ├── openpcb/                     ← Django project package
 │   ├── settings.py
@@ -113,9 +114,11 @@ openpcb/                        ← repo root, also Django project root
 │   ├── views.py
 │   ├── forms.py                 ← ProjectForm, ProjectFileForm, ProjectPhotoForm
 │   ├── constants.py             ← upload allowlists/size limits, file-type detection
+│   ├── checks.py                ← Django system checks (e.g. prod email backend)
 │   ├── admin.py
 │   ├── urls.py
-│   ├── tests/                   ← test_forms.py, test_models.py, test_views.py
+│   ├── tests/                   ← test_forms.py, test_models.py, test_views.py,
+│   │                                test_auth.py, test_checks.py
 │   ├── migrations/
 │   └── templates/
 │       ├── 404.html / 500.html
@@ -320,17 +323,26 @@ to `window`; declarations inside an IIFE are not visible in global scope.
 
 ### Running tests and lint
 
-- Tests: `docker compose exec web uv run python manage.py test` (or
-  `web-dev` if running the dev profile). Test mode (`'test' in sys.argv`)
-  switches `STORAGES['default']` to in-memory storage and static files to
-  the non-manifest backend, so no R2 credentials or `collectstatic` run are
-  needed to run the suite.
-- Lint/format: `docker compose exec web uv run ruff check .` and
-  `uv run ruff format .`. A `.pre-commit-config.yaml` is provided — install
-  with `uvx pre-commit install` on the host (requires `uv` on the host, not
-  just in Docker) for local pre-commit checks; CI runs both regardless.
-- CI (`.github/workflows/ci.yml`) runs ruff + the test suite against a
-  Postgres service container on every push/PR to `main`.
+- **`scripts/check.sh`** is the single source of truth for "is this change
+  good to commit?" — it runs `ruff check`, `ruff format --check`,
+  `manage.py check`, and `manage.py test`, in that order, and is also what CI
+  runs. Run it with `docker compose exec web sh scripts/check.sh` (or
+  `web-dev` if running the dev profile). Don't hand-roll a subset of these
+  commands when checking your work — run the script so local and CI results
+  can't drift apart.
+- Test mode (`'test' in sys.argv`) switches `STORAGES['default']` to
+  in-memory storage and static files to the non-manifest backend, so no R2
+  credentials or `collectstatic` run are needed for `manage.py test`.
+- To auto-fix lint/format issues rather than just check them:
+  `docker compose exec web uv run ruff check --fix .` and
+  `uv run ruff format .`.
+- A `.pre-commit-config.yaml` is provided for the lint/format portion —
+  install with `uvx pre-commit install` on the host (requires `uv` on the
+  host, not just in Docker). It runs on `git commit` and auto-fixes via
+  ruff; it does not run `manage.py test` (no DB access from the host), so
+  `scripts/check.sh` is still the full check before pushing.
+- CI (`.github/workflows/ci.yml`) runs `scripts/check.sh` against a Postgres
+  service container on every push/PR to `main`.
 
 ---
 
@@ -387,6 +399,9 @@ it:
 | 2026-06-12 | CI added | `.github/workflows/ci.yml` runs ruff (check + format) and `manage.py test` against a `postgres:16` service container on push/PR to `main`. Uses dummy `DJANGO_SECRET_KEY`/`DATABASE_URL` env vars — no R2 or email secrets needed since test mode avoids those backends. |
 | 2026-06-12 | Test coverage required for new features | Added a rule to "Django Conventions": new models/forms/views/signals must ship with tests in `core/tests/`. CI enforces this on every PR. |
 | 2026-06-12 | Observability (Phase B) | Added `LOGGING` config in `settings.py` — structured stdout logging (Django's request/error logs included), picked up by `docker compose logs`. Added a `/healthz` endpoint (`core/views.py:healthz`, checks DB connectivity via `connection.ensure_connection()`) for container/uptime health checks. For error tracking, chose **GlitchTip** (self-hosted, Sentry-API-compatible) over hosted Sentry — fits the "no extra managed services" bias, and the developer already stood up an instance. Wired via `sentry-sdk` (Sentry's official client works against GlitchTip's API) — `SENTRY_DSN` env var; empty/unset in dev and CI skips `sentry_sdk.init` entirely (gated on `TESTING`). |
+| 2026-06-12 | Auth rate limiting (Phase C) | Investigated rate-limiting login/signup — django-allauth 65.x already enables `ACCOUNT_RATE_LIMITS` by default (`login_failed`: 5/5min per username + 10/min per IP; `signup`, `reset_password`, etc. similarly limited), backed by Django's default cache (`LocMemCache`, no `CACHES` config needed). No code change required; added `core/tests/test_auth.py` to lock in this behavior so it isn't silently disabled by a future settings change. |
+| 2026-06-12 | Prod email backend check (Phase C) | Added `core/checks.py` (`email_backend_check`, registered via `CoreConfig.ready()`): warns (`core.W001`) if `DEBUG=False` and `EMAIL_BACKEND` is still the console backend — password resets would otherwise be silently written to logs instead of emailed. Runs on every `manage.py` invocation (incl. `migrate` in `docker-entrypoint.sh`), so it's visible in prod logs without waiting for a tester to report broken password resets. Skipped when `TESTING` to avoid CI noise (CI doesn't set `EMAIL_BACKEND`). Documented in `.env.example`. |
+| 2026-06-12 | Single quality-check script | Added `scripts/check.sh` (ruff check, ruff format --check, manage.py check, manage.py test, in that order) as the one canonical "is this ready to commit?" command, run via `docker compose exec web sh scripts/check.sh`. CI now runs this same script instead of duplicating the steps inline, so local and CI checks can't drift apart. Required adding dummy `R2_*` env vars to CI — `manage.py check` (unlike `manage.py test`) builds the real-storage `STORAGES` dict (TESTING is false), which raises if the R2 env vars are unset, even though no network call is made. |
 
 ---
 
