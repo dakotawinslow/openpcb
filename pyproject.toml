@@ -13,6 +13,7 @@ dependencies = [
     "django-environ",
     "Pillow",
     "gunicorn",
+    "sentry-sdk>=2.62.0",
 ]
 
 [dependency-groups]

@@ -154,3 +154,42 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Structured logging to stdout — captured by `docker compose logs` / the
+# host's container log driver. Django's own request/error logs (e.g. 500s)
+# flow through the 'django' logger below.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} {levelname} {name} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+# GlitchTip (Sentry-API-compatible) error tracking. Unset/empty in dev — no
+# DSN means sentry_sdk.init is skipped entirely, so local runs never report.
+SENTRY_DSN = env('SENTRY_DSN', default='')
+if SENTRY_DSN and not TESTING:
+    import sentry_sdk
+
+    sentry_sdk.init(dsn=SENTRY_DSN, send_default_pii=False)

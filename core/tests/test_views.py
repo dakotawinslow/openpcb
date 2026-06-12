@@ -6,6 +6,13 @@ from django.urls import reverse
 from core.models import Project
 
 
+class HealthzTests(TestCase):
+    def test_healthz_ok(self):
+        resp = self.client.get(reverse('healthz'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json(), {'status': 'ok'})
+
+
 class ProjectDetailVisibilityTests(TestCase):
     def setUp(self):
         self.owner = User.objects.create_user('owner', password='pw')

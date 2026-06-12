@@ -3,7 +3,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
+from django.db import connection
 from django.db.models import F, Q
+from django.db.utils import OperationalError
 from django.http import Http404, HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -326,3 +328,11 @@ def file_download(request, uuid, slug, file_id):
 
     url = project_file.file.storage.url(project_file.file.name, expire=60)
     return redirect(url)
+
+
+def healthz(request):
+    try:
+        connection.ensure_connection()
+    except OperationalError:
+        return JsonResponse({'status': 'error'}, status=503)
+    return JsonResponse({'status': 'ok'})

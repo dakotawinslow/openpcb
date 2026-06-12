@@ -167,6 +167,7 @@ key; `Project.uuid` is scoped to public-facing URLs only (see decisions log).
 
 ```
 /                                                  → index (landing page)
+/healthz/                                          → healthz (DB connectivity check, JSON)
 /explore/                                          → explore (gallery grid, search/sort/tags)
 /users/<username>/                                 → profile
 /admin/                                            → Django admin
@@ -384,6 +385,8 @@ it:
 | 2026-06-12 | Lint/format tooling | Added ruff (lint + format) as a dev dependency, configured via `[tool.ruff]` in `pyproject.toml`. `quote-style = "single"` preserves the existing single-quote convention to avoid a repo-wide quote-churn diff. DJ012 (Django model member ordering — Meta before `__str__`/`save`) is enforced; reordered the 4 affected models once. The 3 long marketing-copy strings in `WHY_ITEMS` (`core/views.py`) are `# noqa: E501` rather than split, since splitting would hurt readability/grep-ability. `.pre-commit-config.yaml` added for local use (optional — see "Running tests and lint"). |
 | 2026-06-12 | Initial test suite | Added `core/tests/` package (forms, models/signals, view permissions — 26 tests). `STORAGES['default']` switches to `django.core.files.storage.InMemoryStorage` and staticfiles to the non-manifest backend when `'test' in sys.argv` (`TESTING` flag in `settings.py`) — avoids needing R2 credentials or a `collectstatic` run to test thumbnail-signal/file-upload code paths. Fixed a real bug found while writing form tests: tags that slugify to `''` (e.g. `"!!!"`) no longer create an empty-named `Tag` — `ProjectForm.save` now drops empty slugs and dedupes via `dict.fromkeys`. |
 | 2026-06-12 | CI added | `.github/workflows/ci.yml` runs ruff (check + format) and `manage.py test` against a `postgres:16` service container on push/PR to `main`. Uses dummy `DJANGO_SECRET_KEY`/`DATABASE_URL` env vars — no R2 or email secrets needed since test mode avoids those backends. |
+| 2026-06-12 | Test coverage required for new features | Added a rule to "Django Conventions": new models/forms/views/signals must ship with tests in `core/tests/`. CI enforces this on every PR. |
+| 2026-06-12 | Observability (Phase B) | Added `LOGGING` config in `settings.py` — structured stdout logging (Django's request/error logs included), picked up by `docker compose logs`. Added a `/healthz` endpoint (`core/views.py:healthz`, checks DB connectivity via `connection.ensure_connection()`) for container/uptime health checks. For error tracking, chose **GlitchTip** (self-hosted, Sentry-API-compatible) over hosted Sentry — fits the "no extra managed services" bias, and the developer already stood up an instance. Wired via `sentry-sdk` (Sentry's official client works against GlitchTip's API) — `SENTRY_DSN` env var; empty/unset in dev and CI skips `sentry_sdk.init` entirely (gated on `TESTING`). |
 
 ---
 
