@@ -204,6 +204,12 @@ Do not add routes unless asked.
   in the view.
 - **Named URLs** — always use `{% url 'name' %}` in templates, never
   hardcoded paths.
+- **Tests are required for new features** — any new model, form, view, or
+  signal needs corresponding tests in `core/tests/` (`test_models.py`,
+  `test_forms.py`, `test_views.py`, or a new module for a new area). At
+  minimum, cover the happy path, permission/ownership checks, and validation
+  edge cases. A feature without tests is not done — CI enforces this on every
+  PR.
 
 ---
 
