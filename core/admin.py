@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Profile, ProjectFile, Project, ProjectPhoto, Tag
+from .models import Profile, Project, ProjectFile, ProjectPhoto, Tag
 
 
 @admin.register(Profile)
@@ -49,7 +49,14 @@ class ProjectPhotoAdmin(admin.ModelAdmin):
 
 @admin.register(ProjectFile)
 class ProjectFileAdmin(admin.ModelAdmin):
-    list_display = ['original_filename', 'project', 'file_type', 'file_size', 'download_count', 'uploaded_at']
+    list_display = [
+        'original_filename',
+        'project',
+        'file_type',
+        'file_size',
+        'download_count',
+        'uploaded_at',
+    ]
     list_filter = ['file_type']
     search_fields = ['original_filename', 'project__title']
     readonly_fields = ['download_count', 'uploaded_at']

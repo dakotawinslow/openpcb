@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: openpcb
+          POSTGRES_USER: openpcb
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Dummy values — sufficient for `manage.py test`. STORAGES falls back to
+      # in-memory storage in test mode, so no R2 credentials are needed here.
+      DJANGO_SECRET_KEY: ci-test-secret-key
+      DJANGO_DEBUG: 'False'
+      DJANGO_ALLOWED_HOSTS: localhost
+      DATABASE_URL: postgres://openpcb:postgres@localhost:5432/openpcb
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Format check
+        run: uv run ruff format --check .
+
+      - name: Run tests
+        run: uv run python manage.py test

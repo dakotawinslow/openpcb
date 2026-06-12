@@ -3,22 +3,49 @@ import os
 # ── Design files ───────────────────────────────────────────────────────────
 
 ALLOWED_FILE_EXTENSIONS = {
-    '.zip', '.gbr', '.gtl', '.gbl', '.gts', '.gbs',
-    '.gto', '.gbo', '.gtp', '.gbp', '.drl', '.xln',
-    '.kicad_pcb', '.kicad_sch', '.kicad_pro',
-    '.brd', '.sch',   # Eagle
-    '.pdf', '.csv', '.txt', '.md',
+    '.zip',
+    '.gbr',
+    '.gtl',
+    '.gbl',
+    '.gts',
+    '.gbs',
+    '.gto',
+    '.gbo',
+    '.gtp',
+    '.gbp',
+    '.drl',
+    '.xln',
+    '.kicad_pcb',
+    '.kicad_sch',
+    '.kicad_pro',
+    '.brd',
+    '.sch',  # Eagle
+    '.pdf',
+    '.csv',
+    '.txt',
+    '.md',
 }
 
 MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024  # 100MB per file
 MAX_FILES_PER_PROJECT = 20
 
 FILE_TYPE_BY_EXTENSION = {
-    '.gbr': 'Gerber', '.gtl': 'Gerber', '.gbl': 'Gerber', '.gts': 'Gerber',
-    '.gbs': 'Gerber', '.gto': 'Gerber', '.gbo': 'Gerber', '.gtp': 'Gerber',
-    '.gbp': 'Gerber', '.drl': 'Gerber', '.xln': 'Gerber',
-    '.kicad_pcb': 'KiCad', '.kicad_sch': 'KiCad', '.kicad_pro': 'KiCad',
-    '.brd': 'Eagle', '.sch': 'Eagle',
+    '.gbr': 'Gerber',
+    '.gtl': 'Gerber',
+    '.gbl': 'Gerber',
+    '.gts': 'Gerber',
+    '.gbs': 'Gerber',
+    '.gto': 'Gerber',
+    '.gbo': 'Gerber',
+    '.gtp': 'Gerber',
+    '.gbp': 'Gerber',
+    '.drl': 'Gerber',
+    '.xln': 'Gerber',
+    '.kicad_pcb': 'KiCad',
+    '.kicad_sch': 'KiCad',
+    '.kicad_pro': 'KiCad',
+    '.brd': 'Eagle',
+    '.sch': 'Eagle',
     '.csv': 'BOM',
 }
 

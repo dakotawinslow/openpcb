@@ -10,44 +10,46 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DeleteView, UpdateView
 
 from .constants import MAX_FILES_PER_PROJECT, MAX_PHOTOS_PER_PROJECT, detect_file_type
-from .forms import ProjectForm, ProjectFileForm, ProjectPhotoForm
+from .forms import ProjectFileForm, ProjectForm, ProjectPhotoForm
 from .models import Profile, Project, ProjectFile, ProjectPhoto, Tag
-
 
 WHY_ITEMS = [
     {
-        "title": "Browse by board, not by branch",
-        "body": "Every design gets a real page — renders, photos, and specs up front, instead of a folder of files to dig through.",
+        'title': 'Browse by board, not by branch',
+        'body': 'Every design gets a real page — renders, photos, and specs up front, instead of a folder of files to dig through.',  # noqa: E501
     },
     {
-        "title": "Fab-ready downloads",
-        "body": "Gerbers, KiCad project, schematic, and BOM bundled together — ready to send straight to a fab.",
+        'title': 'Fab-ready downloads',
+        'body': 'Gerbers, KiCad project, schematic, and BOM bundled together — ready to send straight to a fab.',  # noqa: E501
     },
     {
-        "title": "Open licenses, clearly stated",
-        "body": "Every design shows its license upfront, not buried in a file somewhere in the repo.",
+        'title': 'Open licenses, clearly stated',
+        'body': 'Every design shows its license upfront, not buried in a file somewhere in the repo.',  # noqa: E501
     },
 ]
 
 SORT_OPTIONS = {
-    'newest':    '-created_at',
-    'oldest':    'created_at',
+    'newest': '-created_at',
+    'oldest': 'created_at',
     'downloads': '-download_count',
 }
 
 
 def index(request):
     projects = (
-        Project.objects
-        .filter(is_public=True)
+        Project.objects.filter(is_public=True)
         .select_related('owner')
         .prefetch_related('tags')
         .order_by('-created_at')[:6]
     )
-    return render(request, 'core/index.html', {
-        'projects':  projects,
-        'why_items': WHY_ITEMS,
-    })
+    return render(
+        request,
+        'core/index.html',
+        {
+            'projects': projects,
+            'why_items': WHY_ITEMS,
+        },
+    )
 
 
 def explore(request):
@@ -58,8 +60,7 @@ def explore(request):
         sort = 'newest'
 
     projects = (
-        Project.objects
-        .filter(is_public=True)
+        Project.objects.filter(is_public=True)
         .select_related('owner')
         .prefetch_related('tags')
         .order_by(SORT_OPTIONS[sort])
@@ -86,15 +87,19 @@ def explore(request):
 
     tags = Tag.objects.filter(project__is_public=True).distinct()
 
-    return render(request, 'core/explore.html', {
-        'page_obj':  page_obj,
-        'q':         q,
-        'tag':       tag,
-        'sort':      sort,
-        'tags':      tags,
-        'base_qs':   base_qs,
-        'notag_qs':  notag_qs,
-    })
+    return render(
+        request,
+        'core/explore.html',
+        {
+            'page_obj': page_obj,
+            'q': q,
+            'tag': tag,
+            'sort': sort,
+            'tags': tags,
+            'base_qs': base_qs,
+            'notag_qs': notag_qs,
+        },
+    )
 
 
 def profile_view(request, username):
@@ -102,19 +107,20 @@ def profile_view(request, username):
     profile, _ = Profile.objects.get_or_create(user=profile_user)
 
     projects = (
-        Project.objects
-        .filter(owner=profile_user)
-        .prefetch_related('tags')
-        .order_by('-created_at')
+        Project.objects.filter(owner=profile_user).prefetch_related('tags').order_by('-created_at')
     )
     if request.user != profile_user:
         projects = projects.filter(is_public=True)
 
-    return render(request, 'core/profile.html', {
-        'profile_user': profile_user,
-        'profile':      profile,
-        'projects':     projects,
-    })
+    return render(
+        request,
+        'core/profile.html',
+        {
+            'profile_user': profile_user,
+            'profile': profile,
+            'projects': projects,
+        },
+    )
 
 
 def project_detail(request, uuid, slug):
@@ -132,17 +138,20 @@ def project_detail(request, uuid, slug):
         )
     if project.owner:
         others = (
-            Project.objects
-            .filter(owner=project.owner, is_public=True)
+            Project.objects.filter(owner=project.owner, is_public=True)
             .exclude(pk=project.pk)
             .prefetch_related('tags')[:2]
         )
     else:
         others = []
-    return render(request, 'core/project_detail.html', {
-        'project': project,
-        'others':  others,
-    })
+    return render(
+        request,
+        'core/project_detail.html',
+        {
+            'project': project,
+            'others': others,
+        },
+    )
 
 
 class ProjectCreateView(LoginRequiredMixin, CreateView):
@@ -155,10 +164,13 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('project_detail', kwargs={
-            'uuid': self.object.uuid,
-            'slug': self.object.slug,
-        })
+        return reverse(
+            'project_detail',
+            kwargs={
+                'uuid': self.object.uuid,
+                'slug': self.object.slug,
+            },
+        )
 
 
 class OwnerOnlyMixin(UserPassesTestMixin):
@@ -184,10 +196,13 @@ class ProjectUpdateView(LoginRequiredMixin, OwnerOnlyMixin, UpdateView):
         return get_object_or_404(Project, uuid=self.kwargs['uuid'])
 
     def get_success_url(self):
-        return reverse('project_detail', kwargs={
-            'uuid': self.object.uuid,
-            'slug': self.object.slug,
-        })
+        return reverse(
+            'project_detail',
+            kwargs={
+                'uuid': self.object.uuid,
+                'slug': self.object.slug,
+            },
+        )
 
 
 class ProjectDeleteView(LoginRequiredMixin, OwnerOnlyMixin, DeleteView):
@@ -303,7 +318,9 @@ def file_download(request, uuid, slug, file_id):
 
     session_key = f'downloaded_file_{project_file.pk}'
     if not request.session.get(session_key):
-        ProjectFile.objects.filter(pk=project_file.pk).update(download_count=F('download_count') + 1)
+        ProjectFile.objects.filter(pk=project_file.pk).update(
+            download_count=F('download_count') + 1
+        )
         Project.objects.filter(pk=project.pk).update(download_count=F('download_count') + 1)
         request.session[session_key] = True
 

@@ -9,38 +9,56 @@ stack, and the conventions to follow. Read this before making any changes.
 
 OpenPCB (openpcb.com) is a community platform for sharing open-source PCB
 designs — think Printables or Thingiverse, but for PCB design files (Gerbers,
-KiCad, Eagle, etc.). Users will eventually be able to upload designs, browse a
-public library, and order boards directly through partner integrations with
-fabs like PCBWay and JLC.
+KiCad, Eagle, etc.). Users can create projects, upload design files and
+photos, browse a public library, and (eventually) order boards directly
+through partner integrations with fabs like PCBWay and JLC.
 
-The domain is already owned. The project is in early pre-launch development.
+The domain is already owned. The project is in a **limited alpha**: a small
+group of real testers is using the live site and filing bug/feedback issues
+on GitHub.
 
 ---
 
-## Current Phase: Proof of Concept Demo
+## Current Phase: Limited Alpha — Hardening
 
-We are NOT building a full product yet. The current goal is a static
-three-page demo with hardcoded data, good enough to show to colleagues and
-validate the concept. There is no database, no authentication, no file
-uploads, and no backend logic in scope for this phase.
+The core product loop is built and live: real accounts, real projects, real
+file/photo uploads to object storage, all backed by Postgres. The current
+focus is **not new features** — it's taking the codebase from "built fast to
+validate the idea" to "responsible enough to keep running and to build on
+confidently." Concretely, that means:
 
-**In scope for the demo:**
-- A landing page (`/`)
-- A gallery/explore page (`/explore`)
-- A project detail page (`/projects/<id>/`)
-- Hardcoded fake project data defined as a Python list in `views.py`
-- A convincing, polished UI using Tailwind CSS
+- Closing test-coverage gaps (the app currently has none)
+- CI that runs lint + tests on every PR
+- Lint/format tooling (ruff) and pre-commit hooks
+- Production observability (logging, error visibility, health checks)
+- Fixing rough edges found during this review (e.g. validation edge cases)
+- Triaging and fixing bugs/feedback filed by alpha testers (tracked as
+  GitHub issues)
 
-**Explicitly out of scope for the demo:**
-- Authentication of any kind
-- Database models or migrations
-- File upload or storage
-- Any backend logic beyond rendering templates
+**What's already live (do not redo or "rebuild from scratch"):**
+- Accounts/auth via django-allauth (signup, login, password reset)
+- Django models backed by Postgres: `Profile`, `Tag`, `Project`,
+  `ProjectFile`, `ProjectPhoto` (see `core/models.py`)
+- Project CRUD, owner-only edit/delete
+- File and photo upload/delete to Cloudflare R2, with extension/size
+  validation (`core/constants.py`, `core/forms.py`)
+- Auto-generated thumbnails from a "featured" photo (signal-driven, see
+  `core/models.py`)
+- Explore page: search, tag filter, sort, pagination
+- User profile pages
+- Session-deduplicated download counting, pre-signed (60s) R2 download URLs
+
+**Still explicitly out of scope (Phase 3/4 — do not build unless asked):**
+- In-browser Gerber viewer (tracked as issue #17)
+- Full-text/fuzzy search (issue #11)
+- Profile editing — avatar/username/bio (issue #12)
+- Partner fab integrations / "order this board" (issue #18)
+- Embedded circuit simulator (issue #19)
+- Payments/revenue model
 - Mobile optimization (nice to have, not required)
-- Real download links (dead buttons are fine)
 
-When the demo is validated, we will move to a real MVP with Django models,
-auth, and file uploads. Do not get ahead of that phase.
+If a request seems to be heading toward one of these, flag it and confirm
+before proceeding.
 
 ---
 
@@ -48,20 +66,24 @@ auth, and file uploads. Do not get ahead of that phase.
 
 | Layer | Choice |
 |---|---|
-| Backend framework | Django 5.x |
-| Frontend interaction | HTMX |
-| Styling | Tailwind CSS (CDN for demo, not compiled) |
+| Backend framework | Django 6.x |
+| Auth | django-allauth |
+| Database | Postgres 16 |
+| Object storage | Cloudflare R2 (via django-storages / boto3, S3-compatible) |
+| Images | Pillow (thumbnail generation) |
+| Frontend interaction | HTMX (included, not yet actively used) |
+| Styling | Tailwind CSS (CDN, not compiled) |
 | Language | Python 3.12 |
 | Package management | uv (`pyproject.toml` + `uv.lock`) |
 | Containerization | Docker + Docker Compose |
+| Static files | WhiteNoise |
 | Version control | Git / GitHub |
 
 **Not in the stack:**
 - No React, Vue, or any JS framework
 - No Node.js or npm/webpack toolchain
 - No JavaScript written by hand unless absolutely necessary — prefer HTMX
-- No Celery, Redis, or any task queue (post-MVP concerns)
-- No database yet (demo phase)
+- No Celery, Redis, or any task queue
 
 ---
 
@@ -72,81 +94,105 @@ openpcb/                        ← repo root, also Django project root
 ├── CLAUDE.md                   ← this file
 ├── Dockerfile
 ├── docker-compose.yml
-├── pyproject.toml              ← dependencies (edit this to add packages)
+├── docker-entrypoint.sh        ← prod entrypoint: migrate + collectstatic, then exec CMD
+├── pyproject.toml              ← dependencies + ruff config (edit this to add packages)
 ├── uv.lock                     ← auto-generated, never edit by hand
 ├── manage.py
-├── openpcb/                    ← Django project package
+├── .env.example                ← copy to .env before first run
+├── .pre-commit-config.yaml     ← optional local ruff hooks (see "Running tests and lint")
+├── .github/workflows/ci.yml    ← ruff + test suite on push/PR to main
+├── assets/                      ← source images (logo, palette) used as static files
+├── openpcb/                     ← Django project package
 │   ├── settings.py
 │   ├── urls.py
+│   ├── asgi.py
 │   └── wsgi.py
-└── core/                       ← main (and currently only) Django app
-    ├── views.py                ← all views + hardcoded PROJECTS data
-    ├── urls.py
-    └── templates/
-        └── core/
-            ├── base.html       ← master template, all pages extend this
-            ├── index.html      ← landing page
-            ├── explore.html    ← gallery grid
-            ├── project_detail.html
-            └── _card.html      ← reusable project card include
+├── core/                        ← main (and currently only) Django app
+│   ├── models.py                ← Profile, Tag, Project, ProjectFile, ProjectPhoto
+│   │                                + thumbnail-management signals
+│   ├── views.py
+│   ├── forms.py                 ← ProjectForm, ProjectFileForm, ProjectPhotoForm
+│   ├── constants.py             ← upload allowlists/size limits, file-type detection
+│   ├── admin.py
+│   ├── urls.py
+│   ├── tests/                   ← test_forms.py, test_models.py, test_views.py
+│   ├── migrations/
+│   └── templates/
+│       ├── 404.html / 500.html
+│       └── core/
+│           ├── base.html        ← master template, all pages extend this
+│           ├── index.html        ← landing page
+│           ├── explore.html      ← gallery grid
+│           ├── project_detail.html
+│           ├── project_form.html
+│           ├── project_confirm_delete.html
+│           ├── profile.html
+│           └── _card.html        ← reusable project card include
+└── templates/account/           ← django-allauth templates (login, signup, password reset)
 ```
 
 ---
 
-## Data Model (Demo Phase)
+## Data Model
 
-There is no database. All project data lives as a hardcoded `PROJECTS` list
-of dictionaries in `core/views.py`. This is intentional — it is the fastest
-path to a working demo and will be replaced with real Django models in the
-next phase.
+Real Django models, backed by Postgres. `core/models.py` is the source of
+truth — do not duplicate the schema here; this is just an orientation map.
 
-Each project dict has the following shape:
+- **`Profile`** — one-to-one with `User`. Auto-created via a `post_save`
+  signal on `User`. Bio/website fields (avatar editing not yet built —
+  issue #12).
+- **`Tag`** — simple unique slug, M2M on `Project`.
+- **`Project`** — the core entity. `owner` is `SET_NULL` (deleting a user
+  doesn't delete their shared designs). Has a stable `uuid` (used in URLs)
+  and a decorative `slug` (auto-generated from title, canonicalised via
+  301 redirect if stale). `thumbnail` is server-managed — generated from
+  the featured `ProjectPhoto`, never set directly.
+- **`ProjectFile`** — design files (Gerbers, KiCad, etc.), one project to
+  many. Stored in R2 under `projects/<project.id>/...`. Validation
+  (extension allowlist, 100MB cap, 20 files/project) lives in
+  `core/constants.py` and `ProjectFileForm.clean_file`.
+- **`ProjectPhoto`** — gallery photos, one project to many. Stored in R2
+  under `projects/<project.id>/photos/...`. The featured photo drives
+  `Project.thumbnail` via `post_save`/`post_delete` signals (fill-and-crop
+  JPEG, see `_generate_thumbnail`/`_reassign_thumbnail`). Validation
+  (extension allowlist, 20MB cap, 20 photos/project) lives in
+  `core/constants.py` and `ProjectPhotoForm.clean_photo`.
 
-```python
-{
-    "id": int,
-    "title": str,
-    "author": str,
-    "description": str,
-    "license": str,          # e.g. "CC BY-SA 4.0"
-    "tags": list[str],
-    "downloads": int,
-    "stars": int,
-    "uploaded": str,         # ISO date string, e.g. "2025-03-12"
-    "files": [
-        {
-            "name": str,     # e.g. "gerbers.zip"
-            "type": str,     # e.g. "Gerber", "KiCad PCB", "BOM", "Schematic"
-            "size": str,     # e.g. "48 KB"
-        }
-    ],
-    "thumbnail": str,        # placehold.co URL for demo
-}
-```
-
-When we move to real models, this structure directly informs the schema for
-`Project` and `File` models. Do not diverge from this shape without good
-reason.
+`Project.id` (integer PK) remains the canonical FK target and the R2 path
+key; `Project.uuid` is scoped to public-facing URLs only (see decisions log).
 
 ---
 
 ## URL Structure
 
 ```
-/                        → core.views.index           (landing page)
-/explore/                → core.views.explore          (gallery grid)
-/projects/<int:id>/      → core.views.project_detail   (detail page)
+/                                                  → index (landing page)
+/explore/                                          → explore (gallery grid, search/sort/tags)
+/users/<username>/                                 → profile
+/admin/                                            → Django admin
+/accounts/...                                      → django-allauth (login, signup, password reset)
+/projects/new/                                     → ProjectCreateView
+/projects/<uuid>/<slug>/                           → project_detail
+/projects/<uuid>/<slug>/edit/                      → ProjectUpdateView (owner only)
+/projects/<uuid>/<slug>/delete/                    → ProjectDeleteView (owner only)
+/projects/<uuid>/<slug>/photos/upload/             → photo_upload (owner only)
+/projects/<uuid>/<slug>/photos/<id>/delete/        → photo_delete (owner only)
+/projects/<uuid>/<slug>/photos/<id>/feature/       → photo_set_featured (owner only)
+/projects/<uuid>/<slug>/photos/reorder/            → photo_reorder (owner only)
+/projects/<uuid>/<slug>/files/upload/              → file_upload (owner only)
+/projects/<uuid>/<slug>/files/<id>/delete/         → file_delete (owner only)
+/projects/<uuid>/<slug>/files/<id>/download/       → file_download
 ```
 
-These are the only routes for the demo. Do not add routes unless asked.
+Do not add routes unless asked.
 
 ---
 
 ## Django Conventions
 
-- **Fat models, thin views** — business logic belongs in models, not views.
-  (Not relevant in the demo phase since there are no models, but follow this
-  when models are introduced.)
+- **Fat models, thin views** — business logic belongs in models (see the
+  thumbnail-management signals in `core/models.py` as the pattern to
+  follow), not views.
 - **Template inheritance** — every page template must extend `core/base.html`
   using `{% extends "core/base.html" %}` and fill in the `{% block content %}`
   block. Never write standalone HTML pages.
@@ -163,12 +209,12 @@ These are the only routes for the demo. Do not add routes unless asked.
 
 ## Tailwind Conventions
 
-- Using the **Tailwind CDN** for the demo. This is intentional and acceptable
-  for this phase. Do not introduce a Node/npm build pipeline.
+- Using the **Tailwind CDN**. This is intentional. Do not introduce a
+  Node/npm build pipeline.
 - Prefer Tailwind utility classes directly in HTML. Do not write custom CSS
   unless there is genuinely no Tailwind equivalent.
-- Responsive classes are welcome but not required for the demo. Desktop layout
-  is the primary target.
+- Responsive classes are welcome but not required. Desktop layout is the
+  primary target.
 
 ---
 
@@ -227,10 +273,9 @@ remove or override this on individual pages.
 
 ## HTMX Conventions
 
-HTMX is included in `base.html` but is not actively used in the demo phase.
-It is wired in now so it is available when we need it. Do not add HTMX
-interactions until the real MVP phase unless a specific interaction is
-explicitly requested.
+HTMX is included in `base.html` but is not actively used yet. It is wired in
+so it is available when we need it. Do not add HTMX interactions unless a
+specific interaction is explicitly requested.
 
 **JavaScript in templates must be wrapped in an IIFE.** Any `<script>` block
 inside a template that could be re-executed by an HTMX content swap must wrap
@@ -264,37 +309,47 @@ to `window`; declarations inside an IIFE are not visible in global scope.
   `.env` differs. Copy `.env.example` to `.env` before first run (defaults to
   `dev`) — settings are loaded via `django-environ` from that file.
 - Static files are served by **WhiteNoise** — no separate static file server
-  or Nginx is needed in development or demo deployment.
+  or Nginx is needed in development or production.
+
+### Running tests and lint
+
+- Tests: `docker compose exec web uv run python manage.py test` (or
+  `web-dev` if running the dev profile). Test mode (`'test' in sys.argv`)
+  switches `STORAGES['default']` to in-memory storage and static files to
+  the non-manifest backend, so no R2 credentials or `collectstatic` run are
+  needed to run the suite.
+- Lint/format: `docker compose exec web uv run ruff check .` and
+  `uv run ruff format .`. A `.pre-commit-config.yaml` is provided — install
+  with `uvx pre-commit install` on the host (requires `uv` on the host, not
+  just in Docker) for local pre-commit checks; CI runs both regardless.
+- CI (`.github/workflows/ci.yml`) runs ruff + the test suite against a
+  Postgres service container on every push/PR to `main`.
 
 ---
 
-## What Good Looks Like (Definition of Done for the Demo)
+## What Good Looks Like (Definition of Done for Alpha Hardening)
 
-The demo is complete when:
+This stage of work is complete when:
 
-1. A colleague who knows nothing about the project can land on the homepage
-   and explain back what the site does without prompting.
-2. The full flow of `/` → `/explore` → `/projects/<id>/` works with no broken
-   links, no Django error pages, and no visual anomalies.
-3. The project detail page makes a colleague say "I'd want my board listed
-   here."
+1. `core/tests.py` has real coverage of ownership/permission checks, form
+   validation, and the thumbnail signals — and CI runs it on every PR.
+2. A lint/format check (ruff) runs in CI and locally via pre-commit.
+3. Production errors are visible (logging configured, not just default
+   Django behavior) without waiting for a tester to report them.
+4. The codebase has a README a new contributor or tester can follow.
 
 ---
 
-## What Comes After the Demo
+## What Comes After This
 
-For context — do not build any of this yet:
+For context — do not build any of this yet unless a specific issue asks for
+it:
 
-- **Phase 2 (Real MVP):** Django models for `User`, `Project`, and `File`.
-  Auth via `django-allauth`. File upload to cloud storage. Real Postgres
-  database added to Docker Compose.
-- **Phase 3:** In-browser Gerber viewer (WebGL/JS, backend-agnostic).
-  Search and tagging. User profiles.
-- **Phase 4:** Partner integrations (PCBWay, JLC, Digi-Key). "Order this
-  board" button. Revenue model.
-
-If a request seems to be heading toward Phase 2+ concerns while we are in the
-demo phase, flag it and confirm before proceeding.
+- **Phase 3:** In-browser Gerber viewer (issue #17). Full-text/fuzzy search
+  (issue #11). Profile editing (issue #12). License expansion (issue #16).
+  Photo crop fix (issue #15).
+- **Phase 4:** Partner integrations (PCBWay, JLC, Digi-Key) and "order this
+  board" (issue #18). Embedded circuit simulator (issue #19). Revenue model.
 
 ---
 
@@ -319,12 +374,16 @@ demo phase, flag it and confirm before proceeding.
 | 2026-06-11 | File Uploads sprint | Photo/file upload, delete, and download views added. First photo a user uploads is auto-marked featured (so a thumbnail exists as soon as a project has one photo). Photo/file management lives in owner-only panels on `project_detail.html` (grid with "Set featured"/delete controls), not in `ProjectForm`. Validation (extension allowlist + size caps) lives in `core/constants.py` and `forms.py` `clean_*` methods. Downloads are session-deduplicated and redirect to pre-signed R2 URLs (`expire=60`). |
 | 2026-06-11 | Dual ID system kept | `Project.id` (integer PK) remains the canonical identifier for all FKs (ProjectFile, ProjectPhoto, tags M2M) and R2 storage paths (`projects/<id>/...`). `Project.uuid` remains scoped to public-facing identifiers (URLs only). Considered consolidating to a UUID-only PK; rejected — integer PK keeps FKs/indexes compact, and `id` is not vestigial since it's the real PK, not a parallel unused field. |
 | 2026-06-12 | Dev/prod compose split | First prod deploy (`styx`) used the dev `web` service unmodified — it bypassed `docker-entrypoint.sh`, so `migrate`/`collectstatic` never ran and the site 500'd on every page (missing staticfiles manifest). Fixed by splitting `docker-compose.yml` into `web` (prod, gunicorn + entrypoint) and `web-dev` (hot-reload `runserver` + bind mount), selected via `COMPOSE_PROFILES` in `.env`. `docker compose up` is unchanged for both; only `.env` differs — see issue #13. |
+| 2026-06-12 | Alpha hardening kickoff | Codebase moved from "demo" to "limited alpha" framing in this file — auth, Postgres, R2 uploads, and CRUD are all live, so prior demo-phase scope language was stale and misleading. Current focus: tests, CI, lint, observability (see "Current Phase" above). |
+| 2026-06-12 | Lint/format tooling | Added ruff (lint + format) as a dev dependency, configured via `[tool.ruff]` in `pyproject.toml`. `quote-style = "single"` preserves the existing single-quote convention to avoid a repo-wide quote-churn diff. DJ012 (Django model member ordering — Meta before `__str__`/`save`) is enforced; reordered the 4 affected models once. The 3 long marketing-copy strings in `WHY_ITEMS` (`core/views.py`) are `# noqa: E501` rather than split, since splitting would hurt readability/grep-ability. `.pre-commit-config.yaml` added for local use (optional — see "Running tests and lint"). |
+| 2026-06-12 | Initial test suite | Added `core/tests/` package (forms, models/signals, view permissions — 26 tests). `STORAGES['default']` switches to `django.core.files.storage.InMemoryStorage` and staticfiles to the non-manifest backend when `'test' in sys.argv` (`TESTING` flag in `settings.py`) — avoids needing R2 credentials or a `collectstatic` run to test thumbnail-signal/file-upload code paths. Fixed a real bug found while writing form tests: tags that slugify to `''` (e.g. `"!!!"`) no longer create an empty-named `Tag` — `ProjectForm.save` now drops empty slugs and dedupes via `dict.fromkeys`. |
+| 2026-06-12 | CI added | `.github/workflows/ci.yml` runs ruff (check + format) and `manage.py test` against a `postgres:16` service container on push/PR to `main`. Uses dummy `DJANGO_SECRET_KEY`/`DATABASE_URL` env vars — no R2 or email secrets needed since test mode avoids those backends. |
 
 ---
 
 A few notes on what's in here and why:
 
-- **The "out of scope" sections are the most important part.** Claude Code is eager and will happily build you a full auth system if you ask an ambiguous question. Being explicit about phase boundaries prevents that.
+- **The "out of scope" sections are the most important part.** Claude Code is eager and will happily build you a full feature set if you ask an ambiguous question. Being explicit about phase boundaries prevents that.
 - **The Questions & Decisions log** at the bottom is worth maintaining as the project evolves. When you make a meaningful architectural call, add a row. It gives future-you (and future Claude sessions) the *reasoning*, not just the outcome.
 - **The "What Comes After" section** tells the model what the future looks like without inviting it to build there prematurely.
 

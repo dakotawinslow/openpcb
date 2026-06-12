@@ -8,7 +8,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -19,7 +18,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Tag',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name='ID'
+                    ),
+                ),
                 ('name', models.SlugField(unique=True)),
             ],
             options={
@@ -29,27 +33,69 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Profile',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name='ID'
+                    ),
+                ),
                 ('bio', models.TextField(blank=True)),
                 ('website', models.URLField(blank=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    'user',
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
             name='Project',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('uuid', models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, unique=True)),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name='ID'
+                    ),
+                ),
+                (
+                    'uuid',
+                    models.UUIDField(
+                        db_index=True, default=uuid.uuid4, editable=False, unique=True
+                    ),
+                ),
                 ('slug', models.SlugField(blank=True, max_length=200)),
                 ('title', models.CharField(max_length=200)),
                 ('description', models.TextField(blank=True)),
-                ('license', models.CharField(choices=[('CC BY 4.0', 'CC BY 4.0'), ('CC BY-SA 4.0', 'CC BY-SA 4.0'), ('MIT', 'MIT'), ('CERN-OHL-S-2.0', 'CERN-OHL-S-2.0'), ('All Rights Reserved', 'All Rights Reserved')], default='CC BY-SA 4.0', max_length=50)),
+                (
+                    'license',
+                    models.CharField(
+                        choices=[
+                            ('CC BY 4.0', 'CC BY 4.0'),
+                            ('CC BY-SA 4.0', 'CC BY-SA 4.0'),
+                            ('MIT', 'MIT'),
+                            ('CERN-OHL-S-2.0', 'CERN-OHL-S-2.0'),
+                            ('All Rights Reserved', 'All Rights Reserved'),
+                        ],
+                        default='CC BY-SA 4.0',
+                        max_length=50,
+                    ),
+                ),
                 ('is_public', models.BooleanField(default=True)),
                 ('download_count', models.PositiveIntegerField(default=0)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('owner', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='projects', to=settings.AUTH_USER_MODEL)),
+                (
+                    'owner',
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name='projects',
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
                 ('tags', models.ManyToManyField(blank=True, to='core.tag')),
             ],
             options={
@@ -59,14 +105,40 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ProjectFile',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                (
+                    'id',
+                    models.BigAutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name='ID'
+                    ),
+                ),
                 ('file', models.FileField(upload_to=core.models.project_file_upload_path)),
                 ('original_filename', models.CharField(max_length=255)),
-                ('file_type', models.CharField(choices=[('Gerber', 'Gerber'), ('KiCad', 'KiCad'), ('Eagle', 'Eagle'), ('Schematic', 'Schematic'), ('BOM', 'BOM'), ('Other', 'Other')], default='Other', max_length=20)),
+                (
+                    'file_type',
+                    models.CharField(
+                        choices=[
+                            ('Gerber', 'Gerber'),
+                            ('KiCad', 'KiCad'),
+                            ('Eagle', 'Eagle'),
+                            ('Schematic', 'Schematic'),
+                            ('BOM', 'BOM'),
+                            ('Other', 'Other'),
+                        ],
+                        default='Other',
+                        max_length=20,
+                    ),
+                ),
                 ('file_size', models.PositiveIntegerField()),
                 ('download_count', models.PositiveIntegerField(default=0)),
                 ('uploaded_at', models.DateTimeField(auto_now_add=True)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='files', to='core.project')),
+                (
+                    'project',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='files',
+                        to='core.project',
+                    ),
+                ),
             ],
             options={
                 'ordering': ['uploaded_at'],

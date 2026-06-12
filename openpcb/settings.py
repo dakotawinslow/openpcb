@@ -1,10 +1,14 @@
+import sys
 from pathlib import Path
+
 import environ
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env()
 environ.Env.read_env(BASE_DIR / '.env')
+
+TESTING = 'test' in sys.argv
 
 SECRET_KEY = env('DJANGO_SECRET_KEY')
 DEBUG = env.bool('DJANGO_DEBUG', default=False)
@@ -82,9 +86,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'openpcb.wsgi.application'
 
-DATABASES = {
-    'default': env.db('DATABASE_URL')
-}
+DATABASES = {'default': env.db('DATABASE_URL')}
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -102,30 +104,41 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'assets']
 
-STORAGES = {
-    "default": {
-        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-        "OPTIONS": {
-            "access_key": env('R2_ACCESS_KEY_ID'),
-            "secret_key": env('R2_SECRET_ACCESS_KEY'),
-            "bucket_name": env('R2_BUCKET_NAME'),
-            "endpoint_url": env('R2_ENDPOINT_URL'),
-            "default_acl": None,
-            "file_overwrite": False,
-            "signature_version": "s3v4",
-            # Private-project confidentiality depends on this: every generated
-            # URL is signed and short-lived, so objects are never reachable by
-            # guessing the (predictable) projects/<id>/<name> path. Keep the R2
-            # bucket itself private — do not attach a public r2.dev / custom
-            # domain to it.
-            "querystring_auth": True,
-            "querystring_expire": 3600,
+if TESTING:
+    # Tests create real ProjectFile/ProjectPhoto instances (thumbnail signals
+    # write to `default` storage) — keep them in memory instead of hitting R2
+    # or requiring R2 credentials to be configured for the test run. The
+    # manifest static storage requires `collectstatic` to have run first, so
+    # fall back to the plain (unhashed) storage for tests too.
+    STORAGES = {
+        'default': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
+        'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+    }
+else:
+    STORAGES = {
+        'default': {
+            'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+            'OPTIONS': {
+                'access_key': env('R2_ACCESS_KEY_ID'),
+                'secret_key': env('R2_SECRET_ACCESS_KEY'),
+                'bucket_name': env('R2_BUCKET_NAME'),
+                'endpoint_url': env('R2_ENDPOINT_URL'),
+                'default_acl': None,
+                'file_overwrite': False,
+                'signature_version': 's3v4',
+                # Private-project confidentiality depends on this: every generated
+                # URL is signed and short-lived, so objects are never reachable by
+                # guessing the (predictable) projects/<id>/<name> path. Keep the R2
+                # bucket itself private — do not attach a public r2.dev / custom
+                # domain to it.
+                'querystring_auth': True,
+                'querystring_expire': 3600,
+            },
         },
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        },
+    }
 
 EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 

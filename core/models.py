@@ -9,7 +9,6 @@ from django.dispatch import receiver
 from django.utils.text import slugify
 from PIL import Image, ImageOps
 
-
 THUMBNAIL_SIZE = (450, 600)
 
 
@@ -40,11 +39,11 @@ def create_profile(sender, instance, created, **kwargs):
 class Tag(models.Model):
     name = models.SlugField(unique=True)
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         ordering = ['name']
+
+    def __str__(self):
+        return self.name
 
 
 class Project(models.Model):
@@ -74,16 +73,16 @@ class Project(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)
-        super().save(*args, **kwargs)
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
         return self.title
 
-    class Meta:
-        ordering = ['-created_at']
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
 
 class ProjectFile(models.Model):
@@ -103,11 +102,11 @@ class ProjectFile(models.Model):
     download_count = models.PositiveIntegerField(default=0)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return self.original_filename
-
     class Meta:
         ordering = ['uploaded_at']
+
+    def __str__(self):
+        return self.original_filename
 
 
 class ProjectPhoto(models.Model):
@@ -118,14 +117,15 @@ class ProjectPhoto(models.Model):
     order = models.PositiveSmallIntegerField(default=0)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        return f'{self.project.title} — photo {self.pk}'
-
     class Meta:
         ordering = ['order', 'uploaded_at']
 
+    def __str__(self):
+        return f'{self.project.title} — photo {self.pk}'
+
 
 # ── Thumbnail management ──────────────────────────────────────────────────────
+
 
 def _generate_thumbnail(project, photo):
     """Fill-and-crop photo to THUMBNAIL_SIZE, write JPEG to project.thumbnail on R2."""
@@ -165,7 +165,9 @@ def sync_thumbnail_on_photo_save(sender, instance, **kwargs):
     if not instance.is_featured:
         return
     # Unfeature all siblings via bulk update — no signal cascade.
-    ProjectPhoto.objects.filter(project=instance.project).exclude(pk=instance.pk).update(is_featured=False)
+    ProjectPhoto.objects.filter(project=instance.project).exclude(pk=instance.pk).update(
+        is_featured=False
+    )
     _generate_thumbnail(instance.project, instance)
 
 

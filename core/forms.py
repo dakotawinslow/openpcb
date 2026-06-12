@@ -36,7 +36,10 @@ class ProjectForm(forms.ModelForm):
         project = super().save(commit=commit)
         if commit:
             raw = self.cleaned_data.get('tags_input', '')
-            tag_names = [slugify(t.strip()) for t in raw.split(',') if t.strip()]
+            slugs = (slugify(t.strip()) for t in raw.split(','))
+            # Dedupe (case/whitespace variants can collapse to the same slug)
+            # and drop entries that slugify to '' (e.g. "!!!").
+            tag_names = list(dict.fromkeys(slug for slug in slugs if slug))
             tags = [Tag.objects.get_or_create(name=name)[0] for name in tag_names]
             project.tags.set(tags)
         return project
