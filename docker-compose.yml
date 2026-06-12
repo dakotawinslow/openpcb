@@ -1,18 +1,35 @@
+# Which `web` variant runs is selected by COMPOSE_PROFILES in .env:
+#   COMPOSE_PROFILES=prod  (default for deployments) -> `web`,     gunicorn
+#                                                          behind docker-entrypoint.sh
+#                                                          (migrate + collectstatic)
+#   COMPOSE_PROFILES=dev   (local development)        -> `web-dev`, hot-reloading
+#                                                          `manage.py runserver`
+# `docker compose up` is the same command either way; only .env differs.
+x-web-common: &web-common
+  build: .
+  # Host port is configurable via WEB_PORT in .env (defaults to 8000);
+  # the container always listens on 8000 internally.
+  ports:
+    - "${WEB_PORT:-8000}:8000"
+  depends_on:
+    - db
+  env_file:
+    - .env
+
 services:
   web:
-    build: .
-    # Host port is configurable via WEB_PORT in .env (defaults to 8000);
-    # the container always listens on 8000 internally.
-    ports:
-      - "${WEB_PORT:-8000}:8000"
+    <<: *web-common
+    profiles: ["prod"]
+    # Uses the Dockerfile's default entrypoint/command: docker-entrypoint.sh
+    # (migrate + collectstatic) then gunicorn.
+
+  web-dev:
+    <<: *web-common
+    profiles: ["dev"]
     volumes:
       - .:/app
-    depends_on:
-      - db
-    env_file:
-      - .env
-    # Local dev: bypass the production entrypoint (gunicorn + migrate +
-    # collectstatic) and run Django's auto-reloading dev server instead.
+    # Bypass the production entrypoint (gunicorn + migrate + collectstatic)
+    # and run Django's auto-reloading dev server instead.
     entrypoint: []
     command: uv run python manage.py runserver 0.0.0.0:8000
 
