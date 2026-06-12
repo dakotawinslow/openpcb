@@ -1,8 +1,10 @@
 services:
   web:
     build: .
+    # Host port is configurable via WEB_PORT in .env (defaults to 8000);
+    # the container always listens on 8000 internally.
     ports:
-      - "8000:8000"
+      - "${WEB_PORT:-8000}:8000"
     volumes:
       - .:/app
     depends_on:
