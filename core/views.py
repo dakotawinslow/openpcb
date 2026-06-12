@@ -16,24 +16,17 @@ from .models import Profile, Project, ProjectFile, ProjectPhoto, Tag
 
 WHY_ITEMS = [
     {
-        "title": "All your files in one place",
-        "body": "Gerbers, KiCad project, schematic, BOM — one URL, all versioned together.",
+        "title": "Browse by board, not by branch",
+        "body": "Every design gets a real page — renders, photos, and specs up front, instead of a folder of files to dig through.",
+    },
+    {
+        "title": "Fab-ready downloads",
+        "body": "Gerbers, KiCad project, schematic, and BOM bundled together — ready to send straight to a fab.",
     },
     {
         "title": "Open licenses, clearly stated",
-        "body": "Every design shows its license upfront so you know exactly what you can do with it.",
+        "body": "Every design shows its license upfront, not buried in a file somewhere in the repo.",
     },
-    {
-        "title": "Designed for the hardware community",
-        "body": "Not a generic file host. Built around how EE and maker projects actually work.",
-    },
-]
-
-STATS = [
-    {"value": "1,200+", "label": "Designs shared"},
-    {"value": "48",     "label": "Contributors"},
-    {"value": "9,400+", "label": "Downloads"},
-    {"value": "100%",   "label": "Open source"},
 ]
 
 SORT_OPTIONS = {
@@ -54,7 +47,6 @@ def index(request):
     return render(request, 'core/index.html', {
         'projects':  projects,
         'why_items': WHY_ITEMS,
-        'stats':     STATS,
     })
 
 
