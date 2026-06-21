@@ -50,6 +50,36 @@ FILE_TYPE_BY_EXTENSION = {
 }
 
 
+GERBER_EXTENSION_TO_LAYER = {
+    '.gtl': ('top', 'copper'),
+    '.gbl': ('bottom', 'copper'),
+    '.gts': ('top', 'mask'),
+    '.gbs': ('bottom', 'mask'),
+    '.gto': ('top', 'silk'),
+    '.gbo': ('bottom', 'silk'),
+    '.gtp': ('top', 'paste'),
+    '.gbp': ('bottom', 'paste'),
+}
+
+GERBER_DRILL_EXTENSIONS = {'.drl', '.xln'}
+
+# KiCad-style: layer identified by filename suffix when extension is generic .gbr
+GERBER_SUFFIX_TO_LAYER = {
+    '-F_Cu': ('top', 'copper'),
+    '-B_Cu': ('bottom', 'copper'),
+    '-F_Mask': ('top', 'mask'),
+    '-B_Mask': ('bottom', 'mask'),
+    '-F_Silkscreen': ('top', 'silk'),
+    '-B_Silkscreen': ('bottom', 'silk'),
+    '-F_SilkS': ('top', 'silk'),
+    '-B_SilkS': ('bottom', 'silk'),
+    '-F_Paste': ('top', 'paste'),
+    '-B_Paste': ('bottom', 'paste'),
+}
+
+GERBER_OUTLINE_SUFFIXES = {'-Edge_Cuts'}
+
+
 def detect_file_type(filename):
     ext = os.path.splitext(filename)[1].lower()
     return FILE_TYPE_BY_EXTENSION.get(ext, 'Other')

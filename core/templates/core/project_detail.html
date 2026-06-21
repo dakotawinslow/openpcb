@@ -81,17 +81,45 @@
 
   <!-- ── Photo gallery ────────────────────────────────────────────── -->
   {% with photos=project.photos.all %}
-  {% if photos %}
+  {% if photos or project.board_preview_top %}
   <div class="mb-8">
 
     <div class="relative mb-2">
-      <div class="chamfer-lg overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-zoom-in ds-outline"
+      <!-- Photo display -->
+      <div id="gallery-photo-container"
+           class="chamfer-lg overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-zoom-in ds-outline{% if not photos %} hidden{% endif %}"
            onclick="galleryOpenLightbox()">
+        {% if photos %}
         <img id="gallery-main" src="{{ photos.0.photo.url }}" alt="{{ project.title }}"
              class="w-full max-h-[480px] object-contain mx-auto">
+        {% endif %}
       </div>
 
-      {% if photos|length > 1 %}
+      {% if project.board_preview_top %}
+      <!-- Board viewer -->
+      <div id="gerber-viewer"
+           class="relative chamfer-lg overflow-hidden bg-gray-900 ds-outline{% if photos %} hidden{% endif %}"
+           data-top-url="{{ project.board_preview_top.url }}"
+           data-bottom-url="{{ project.board_preview_bottom.url }}">
+        <div id="gerber-pan-container" class="w-full h-[480px] overflow-hidden" style="cursor:grab">
+          <img id="gerber-svg-img" src="" alt="Board preview"
+               class="w-full h-full object-contain select-none pointer-events-none"
+               draggable="false">
+        </div>
+        <div class="absolute top-3 right-3 flex gap-1 z-10">
+          <button id="gerber-top-btn" onclick="gerberShowSide('top')"
+                  class="text-xs font-semibold px-3 py-1.5 chamfer-sm transition-colors bg-brand-600 text-white">
+            Top
+          </button>
+          <button id="gerber-bottom-btn" onclick="gerberShowSide('bottom')"
+                  class="text-xs font-semibold px-3 py-1.5 chamfer-sm transition-colors bg-black/50 text-gray-300 hover:bg-black/70">
+            Bottom
+          </button>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if photos|length > 1 or photos and project.board_preview_top %}
       <button onclick="galleryPrev()"
               class="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-20 h-20 bg-black/40 hover:bg-black/70 text-white flex items-center justify-center chamfer transition-colors">
         <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,41 +142,163 @@
         <img src="{{ p.photo.url }}" alt="{{ p.caption|default:project.title }}" class="w-full h-full object-contain bg-gray-100 dark:bg-gray-800">
       </div>
       {% endfor %}
+      {% if project.board_preview_top %}
+      <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-800 cursor-pointer transition-opacity ds-outline {% if not photos %}opacity-100{% else %}opacity-50{% endif %}"
+           onclick="galleryGoto({{ photos|length }})">
+        <div class="w-full h-full flex flex-col items-center justify-center text-brand-400">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+          </svg>
+          <span class="text-[10px] font-medium mt-1">Board</span>
+        </div>
+      </div>
+      {% endif %}
     </div>
 
   </div>
 
+  {% if photos %}
   <div id="gallery-lightbox"
        class="hidden fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-8 cursor-zoom-out"
        onclick="galleryCloseLightbox()">
     <img id="gallery-lightbox-img" src="" alt="" class="max-w-full max-h-full object-contain">
   </div>
+  {% endif %}
 
   <script>
     (function () {
-      var galleryIndex = 0;
-      var galleryMain        = document.getElementById('gallery-main');
-      var galleryLightbox    = document.getElementById('gallery-lightbox');
+      var photoCount = {{ photos|length }};
+      var hasViewer = {% if project.board_preview_top %}true{% else %}false{% endif %};
+      var totalSlides = photoCount + (hasViewer ? 1 : 0);
+      var viewerIndex = hasViewer ? photoCount : -1;
+      var galleryIndex = {% if not photos and project.board_preview_top %}viewerIndex{% else %}0{% endif %};
+
+      var galleryMain = document.getElementById('gallery-main');
+      var galleryPhotoContainer = document.getElementById('gallery-photo-container');
+      var galleryLightbox = document.getElementById('gallery-lightbox');
       var galleryLightboxImg = document.getElementById('gallery-lightbox-img');
-      var galleryThumbs      = document.querySelectorAll('.gallery-thumb');
+      var galleryThumbs = document.querySelectorAll('.gallery-thumb');
+
+      var gerberViewer = document.getElementById('gerber-viewer');
+      var gerberImg = document.getElementById('gerber-svg-img');
+      var gerberLoaded = false;
+      var currentSide = 'top';
+
+      var scale = 1, panX = 0, panY = 0;
+      var isDragging = false, dragStartX = 0, dragStartY = 0;
+
+      function showViewer() {
+        if (galleryPhotoContainer) galleryPhotoContainer.classList.add('hidden');
+        if (gerberViewer) {
+          gerberViewer.classList.remove('hidden');
+          if (!gerberLoaded) {
+            window.gerberShowSide('top');
+            gerberLoaded = true;
+          }
+        }
+      }
+
+      function showPhoto(index) {
+        if (gerberViewer) gerberViewer.classList.add('hidden');
+        if (galleryPhotoContainer) {
+          galleryPhotoContainer.classList.remove('hidden');
+          if (galleryMain) {
+            galleryMain.src = galleryThumbs[index].querySelector('img').src;
+          }
+        }
+      }
 
       window.galleryGoto = function (index) {
-        galleryIndex = (index + galleryThumbs.length) % galleryThumbs.length;
-        galleryMain.src = galleryThumbs[galleryIndex].querySelector('img').src;
+        galleryIndex = ((index % totalSlides) + totalSlides) % totalSlides;
+        if (galleryIndex === viewerIndex) {
+          showViewer();
+        } else {
+          showPhoto(galleryIndex);
+        }
         galleryThumbs.forEach(function (t, i) {
           t.classList.toggle('opacity-100', i === galleryIndex);
-          t.classList.toggle('opacity-50',  i !== galleryIndex);
+          t.classList.toggle('opacity-50', i !== galleryIndex);
         });
       };
+
       window.galleryPrev = function () { window.galleryGoto(galleryIndex - 1); };
       window.galleryNext = function () { window.galleryGoto(galleryIndex + 1); };
+
       window.galleryOpenLightbox = function () {
+        if (galleryIndex === viewerIndex || !galleryLightbox) return;
         galleryLightboxImg.src = galleryMain.src;
         galleryLightbox.classList.remove('hidden');
       };
       window.galleryCloseLightbox = function () {
-        galleryLightbox.classList.add('hidden');
+        if (galleryLightbox) galleryLightbox.classList.add('hidden');
       };
+
+      window.gerberShowSide = function (side) {
+        currentSide = side;
+        if (!gerberViewer) return;
+        gerberImg.src = gerberViewer.dataset[side + 'Url'];
+        scale = 1; panX = 0; panY = 0;
+        applyTransform();
+
+        var topBtn = document.getElementById('gerber-top-btn');
+        var bottomBtn = document.getElementById('gerber-bottom-btn');
+        if (side === 'top') {
+          topBtn.className = 'text-xs font-semibold px-3 py-1.5 chamfer-sm transition-colors bg-brand-600 text-white';
+          bottomBtn.className = 'text-xs font-semibold px-3 py-1.5 chamfer-sm transition-colors bg-black/50 text-gray-300 hover:bg-black/70';
+        } else {
+          bottomBtn.className = 'text-xs font-semibold px-3 py-1.5 chamfer-sm transition-colors bg-brand-600 text-white';
+          topBtn.className = 'text-xs font-semibold px-3 py-1.5 chamfer-sm transition-colors bg-black/50 text-gray-300 hover:bg-black/70';
+        }
+      };
+
+      function applyTransform() {
+        if (gerberImg) {
+          gerberImg.style.transform = 'translate(' + panX + 'px, ' + panY + 'px) scale(' + scale + ')';
+        }
+      }
+
+      if (gerberViewer) {
+        var panContainer = document.getElementById('gerber-pan-container');
+
+        panContainer.addEventListener('wheel', function (e) {
+          e.preventDefault();
+          var factor = e.deltaY > 0 ? 0.9 : 1.1;
+          scale = Math.max(0.5, Math.min(10, scale * factor));
+          applyTransform();
+        }, { passive: false });
+
+        panContainer.addEventListener('mousedown', function (e) {
+          isDragging = true;
+          dragStartX = e.clientX - panX;
+          dragStartY = e.clientY - panY;
+          panContainer.style.cursor = 'grabbing';
+          e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', function (e) {
+          if (!isDragging) return;
+          panX = e.clientX - dragStartX;
+          panY = e.clientY - dragStartY;
+          applyTransform();
+        });
+
+        document.addEventListener('mouseup', function () {
+          if (!isDragging) return;
+          isDragging = false;
+          panContainer.style.cursor = 'grab';
+        });
+
+        panContainer.addEventListener('dblclick', function () {
+          scale = 1; panX = 0; panY = 0;
+          applyTransform();
+        });
+
+        if (galleryIndex === viewerIndex) {
+          window.gerberShowSide('top');
+          gerberLoaded = true;
+        }
+      }
     }());
   </script>
   {% endif %}

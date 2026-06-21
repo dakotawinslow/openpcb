@@ -1,4 +1,6 @@
 import io
+import logging
+import os
 import uuid
 
 from django.contrib.auth.models import User
@@ -8,6 +10,14 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils.text import slugify
 from PIL import Image, ImageOps
+
+from .constants import (
+    GERBER_DRILL_EXTENSIONS,
+    GERBER_EXTENSION_TO_LAYER,
+    GERBER_SUFFIX_TO_LAYER,
+)
+
+logger = logging.getLogger(__name__)
 
 THUMBNAIL_SIZE = (450, 600)
 
@@ -73,6 +83,14 @@ class Project(models.Model):
     is_public = models.BooleanField(default=True)
     # Server-managed: auto-generated from the featured ProjectPhoto. Never set directly.
     thumbnail = models.ImageField(upload_to='thumbnails/', null=True, blank=True)
+    board_preview_top = models.FileField(
+        upload_to='previews/',
+        blank=True,
+    )
+    board_preview_bottom = models.FileField(
+        upload_to='previews/',
+        blank=True,
+    )
     # Increments once per session per project (session-deduplicated in the download view).
     download_count = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -186,3 +204,85 @@ def on_photo_delete(sender, instance, **kwargs):
 @receiver(post_delete, sender=ProjectFile)
 def delete_projectfile_from_r2(sender, instance, **kwargs):
     instance.file.delete(save=False)
+    if instance.file_type == ProjectFile.FileType.GERBER:
+        _regenerate_board_preview(instance.project)
+
+
+# ── Board preview management ─────────────────────────────────────────────────
+
+
+def _regenerate_board_preview(project):
+    """Re-render board preview SVGs from all Gerber files in the project."""
+    from gerbonara import ExcellonFile, GerberFile, LayerStack
+
+    gerber_files = project.files.filter(file_type=ProjectFile.FileType.GERBER)
+    if not gerber_files.exists():
+        if project.board_preview_top:
+            project.board_preview_top.delete(save=False)
+        if project.board_preview_bottom:
+            project.board_preview_bottom.delete(save=False)
+        Project.objects.filter(pk=project.pk).update(board_preview_top='', board_preview_bottom='')
+        return
+
+    graphic_layers = {}
+    drill_pth = None
+    drill_npth = None
+    for pf in gerber_files:
+        name_stem, ext = os.path.splitext(pf.original_filename)
+        ext = ext.lower()
+        try:
+            content = pf.file.read().decode('utf-8', errors='replace')
+            pf.file.close()
+        except Exception:
+            logger.warning('Could not read Gerber file %s', pf.original_filename)
+            continue
+
+        try:
+            if ext in GERBER_DRILL_EXTENSIONS:
+                ef = ExcellonFile.from_string(content)
+                if name_stem.endswith('-NPTH'):
+                    drill_npth = ef
+                else:
+                    drill_pth = ef
+            elif layer_key := GERBER_EXTENSION_TO_LAYER.get(ext):
+                graphic_layers[layer_key] = GerberFile.from_string(content)
+            elif ext == '.gbr':
+                for suffix, layer_key in GERBER_SUFFIX_TO_LAYER.items():
+                    if name_stem.endswith(suffix):
+                        graphic_layers[layer_key] = GerberFile.from_string(content)
+                        break
+        except Exception:
+            logger.warning('Could not parse Gerber file %s', pf.original_filename, exc_info=True)
+            continue
+
+    if not graphic_layers:
+        return
+
+    stack = LayerStack(
+        graphic_layers=graphic_layers,
+        drill_pth=drill_pth,
+        drill_npth=drill_npth,
+    )
+
+    for side in ('top', 'bottom'):
+        try:
+            svg_str = str(stack.to_pretty_svg(side=side))
+        except Exception:
+            logger.warning('Could not render %s board preview', side, exc_info=True)
+            continue
+
+        field = getattr(project, f'board_preview_{side}')
+        if field:
+            field.delete(save=False)
+        field.save(
+            f'{project.uuid}_board_{side}.svg',
+            ContentFile(svg_str.encode('utf-8')),
+            save=False,
+        )
+    project.save(update_fields=['board_preview_top', 'board_preview_bottom'])
+
+
+@receiver(post_save, sender=ProjectFile)
+def regenerate_board_preview_on_file_save(sender, instance, **kwargs):
+    if instance.file_type == ProjectFile.FileType.GERBER:
+        _regenerate_board_preview(instance.project)
