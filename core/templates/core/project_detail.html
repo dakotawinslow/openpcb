@@ -86,9 +86,9 @@
 
     <div class="relative mb-2">
       <div class="chamfer-lg overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-zoom-in ds-outline"
-           style="max-height: 480px;" onclick="galleryOpenLightbox()">
+           onclick="galleryOpenLightbox()">
         <img id="gallery-main" src="{{ photos.0.photo.url }}" alt="{{ project.title }}"
-             class="w-full h-full object-contain">
+             class="w-full max-h-[480px] object-contain mx-auto">
       </div>
 
       {% if photos|length > 1 %}
