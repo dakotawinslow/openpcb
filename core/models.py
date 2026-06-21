@@ -55,10 +55,9 @@ class Project(models.Model):
         CC_BY_NC_SA = 'CC BY-NC-SA 4.0', 'CC BY-NC-SA 4.0'
         CC_BY_NC_ND = 'CC BY-NC-ND 4.0', 'CC BY-NC-ND 4.0'
         CC0 = 'CC0 1.0', 'CC0 1.0'
-        UNLICENSE = 'Unlicense', 'Unlicense'
+        UNLICENSE = 'Unlicense', 'Unlicense (Public Domain)'
         MIT = 'MIT', 'MIT'
         CERN_OHL = 'CERN-OHL-S-2.0', 'CERN-OHL-S-2.0'
-        ALL_RIGHTS = 'All Rights Reserved', 'All Rights Reserved'
 
     # SET_NULL so deleting a user doesn't cascade-delete their shared designs.
     owner = models.ForeignKey(
