@@ -86,9 +86,9 @@
 
     <div class="relative mb-2">
       <div class="chamfer-lg overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-zoom-in ds-outline"
-           style="max-height: 480px;" onclick="galleryOpenLightbox()">
+           onclick="galleryOpenLightbox()">
         <img id="gallery-main" src="{{ photos.0.photo.url }}" alt="{{ project.title }}"
-             class="w-full h-full object-contain">
+             class="w-full max-h-[480px] object-contain mx-auto">
       </div>
 
       {% if photos|length > 1 %}
@@ -111,7 +111,7 @@
       {% for p in photos %}
       <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer transition-opacity ds-outline {% if forloop.first %}opacity-100{% else %}opacity-50{% endif %}"
            onclick="galleryGoto({{ forloop.counter0 }})">
-        <img src="{{ p.photo.url }}" alt="{{ p.caption|default:project.title }}" class="w-full h-full object-cover">
+        <img src="{{ p.photo.url }}" alt="{{ p.caption|default:project.title }}" class="w-full h-full object-contain bg-gray-100 dark:bg-gray-800">
       </div>
       {% endfor %}
     </div>
@@ -165,7 +165,7 @@
       {% for p in photos %}
       <div class="photo-manage-item relative aspect-square chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 ds-outline cursor-grab active:cursor-grabbing"
            draggable="true" data-photo-id="{{ p.id }}">
-        <img src="{{ p.photo.url }}" alt="" class="w-full h-full object-cover pointer-events-none">
+        <img src="{{ p.photo.url }}" alt="" class="w-full h-full object-contain bg-gray-100 dark:bg-gray-800 pointer-events-none">
         {% if p.is_featured %}
         <span class="absolute top-1 left-1 text-[10px] font-semibold px-1.5 py-0.5 bg-brand-600 text-white chamfer-sm">
           Featured
