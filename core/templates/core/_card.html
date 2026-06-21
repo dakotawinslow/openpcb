@@ -5,7 +5,7 @@
   <a href="{% url 'project_detail' project.uuid project.slug %}" class="group block aspect-[4/3] overflow-hidden">
     {% if project.thumbnail %}
       <img src="{{ project.thumbnail.url }}" alt="{{ project.title }}"
-           class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+           class="w-full h-full object-contain bg-gray-100 dark:bg-gray-800 group-hover:scale-105 transition-transform duration-300">
     {% else %}
       <div class="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center relative overflow-hidden"
            style="background-image: repeating-linear-gradient(-45deg, transparent 0px, transparent 12px, rgba(var(--brand-600-rgb), 0.07) 12px, rgba(var(--brand-600-rgb), 0.07) 13px);">
