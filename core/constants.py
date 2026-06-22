@@ -78,6 +78,7 @@ GERBER_SUFFIX_TO_LAYER = {
 }
 
 GERBER_OUTLINE_SUFFIXES = {'-Edge_Cuts'}
+GERBER_OUTLINE_EXTENSIONS = {'.gm1', '.gko'}
 
 
 def detect_file_type(filename):

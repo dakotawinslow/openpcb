@@ -14,6 +14,8 @@ from PIL import Image, ImageOps
 from .constants import (
     GERBER_DRILL_EXTENSIONS,
     GERBER_EXTENSION_TO_LAYER,
+    GERBER_OUTLINE_EXTENSIONS,
+    GERBER_OUTLINE_SUFFIXES,
     GERBER_SUFFIX_TO_LAYER,
 )
 
@@ -244,13 +246,18 @@ def _regenerate_board_preview(project):
                     drill_npth = ef
                 else:
                     drill_pth = ef
+            elif ext in GERBER_OUTLINE_EXTENSIONS:
+                graphic_layers[('mechanical', 'outline')] = GerberFile.from_string(content)
             elif layer_key := GERBER_EXTENSION_TO_LAYER.get(ext):
                 graphic_layers[layer_key] = GerberFile.from_string(content)
             elif ext == '.gbr':
-                for suffix, layer_key in GERBER_SUFFIX_TO_LAYER.items():
-                    if name_stem.endswith(suffix):
-                        graphic_layers[layer_key] = GerberFile.from_string(content)
-                        break
+                if any(name_stem.endswith(s) for s in GERBER_OUTLINE_SUFFIXES):
+                    graphic_layers[('mechanical', 'outline')] = GerberFile.from_string(content)
+                else:
+                    for suffix, layer_key in GERBER_SUFFIX_TO_LAYER.items():
+                        if name_stem.endswith(suffix):
+                            graphic_layers[layer_key] = GerberFile.from_string(content)
+                            break
         except Exception:
             logger.warning('Could not parse Gerber file %s', pf.original_filename, exc_info=True)
             continue
