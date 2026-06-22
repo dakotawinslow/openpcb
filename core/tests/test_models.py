@@ -76,3 +76,91 @@ class ProjectFileDeleteTests(TestCase):
         project_file.delete()
 
         self.assertFalse(storage.exists(name))
+
+
+MINIMAL_GERBER = (
+    b'%FSLAX35Y35*%\n%MOIN*%\n%ADD10R,0.1X0.1*%\nD10*\nX0Y0D03*\nX100000Y100000D01*\nM02*\n'
+)
+
+
+def _gerber_file(name, content=None):
+    return SimpleUploadedFile(
+        name, content or MINIMAL_GERBER, content_type='application/octet-stream'
+    )
+
+
+class BoardPreviewSignalTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('prev_owner', password='pw')
+        self.project = Project.objects.create(owner=self.owner, title='Preview Test')
+
+    def test_gerber_upload_generates_previews(self):
+        ProjectFile.objects.create(
+            project=self.project,
+            file=_gerber_file('board.gtl'),
+            original_filename='board.gtl',
+            file_type=ProjectFile.FileType.GERBER,
+            file_size=100,
+        )
+
+        self.project.refresh_from_db()
+        self.assertTrue(self.project.board_preview_top)
+        self.assertTrue(self.project.board_preview_bottom)
+        self.assertIn('svg', self.project.board_preview_top.read().decode())
+
+    def test_deleting_last_gerber_clears_previews(self):
+        pf = ProjectFile.objects.create(
+            project=self.project,
+            file=_gerber_file('board.gtl'),
+            original_filename='board.gtl',
+            file_type=ProjectFile.FileType.GERBER,
+            file_size=100,
+        )
+
+        self.project.refresh_from_db()
+        self.assertTrue(self.project.board_preview_top)
+
+        pf.delete()
+
+        self.project.refresh_from_db()
+        self.assertFalse(self.project.board_preview_top)
+        self.assertFalse(self.project.board_preview_bottom)
+
+    def test_non_gerber_upload_does_not_trigger_preview(self):
+        ProjectFile.objects.create(
+            project=self.project,
+            file=SimpleUploadedFile('design.zip', b'zip bytes'),
+            original_filename='design.zip',
+            file_type=ProjectFile.FileType.OTHER,
+            file_size=9,
+        )
+
+        self.project.refresh_from_db()
+        self.assertFalse(self.project.board_preview_top)
+        self.assertFalse(self.project.board_preview_bottom)
+
+    def test_unrecognized_gerber_extension_skipped(self):
+        ProjectFile.objects.create(
+            project=self.project,
+            file=_gerber_file('board.gbr'),
+            original_filename='board.gbr',
+            file_type=ProjectFile.FileType.GERBER,
+            file_size=100,
+        )
+
+        self.project.refresh_from_db()
+        self.assertFalse(self.project.board_preview_top)
+        self.assertFalse(self.project.board_preview_bottom)
+
+    def test_corrupt_gerber_does_not_crash(self):
+        ProjectFile.objects.create(
+            project=self.project,
+            file=_gerber_file('board.gtl', b'not a gerber file at all'),
+            original_filename='board.gtl',
+            file_type=ProjectFile.FileType.GERBER,
+            file_size=24,
+        )
+
+        self.project.refresh_from_db()
+        # May or may not generate a preview depending on gerbonara's tolerance,
+        # but must not raise an exception.

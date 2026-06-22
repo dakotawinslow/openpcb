@@ -48,4 +48,9 @@ urlpatterns = [
         views.file_download,
         name='file_download',
     ),
+    path(
+        'projects/<uuid:uuid>/<slug:slug>/board/<str:side>.svg',
+        views.board_preview_svg,
+        name='board_preview_svg',
+    ),
 ]

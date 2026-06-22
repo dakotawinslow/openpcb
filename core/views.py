@@ -6,7 +6,7 @@ from django.core.paginator import Paginator
 from django.db import connection
 from django.db.models import F, Q
 from django.db.utils import OperationalError
-from django.http import Http404, HttpResponsePermanentRedirect, JsonResponse
+from django.http import Http404, HttpResponse, HttpResponsePermanentRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DeleteView, UpdateView
@@ -328,6 +328,18 @@ def file_download(request, uuid, slug, file_id):
 
     url = project_file.file.storage.url(project_file.file.name, expire=60)
     return redirect(url)
+
+
+def board_preview_svg(request, uuid, slug, side):
+    if side not in ('top', 'bottom'):
+        raise Http404
+    project = get_object_or_404(Project, uuid=uuid)
+    if not project.is_public and project.owner != request.user:
+        raise Http404
+    field = getattr(project, f'board_preview_{side}')
+    if not field:
+        raise Http404
+    return HttpResponse(field.read(), content_type='image/svg+xml')
 
 
 def healthz(request):
