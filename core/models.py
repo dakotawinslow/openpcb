@@ -273,9 +273,19 @@ def _regenerate_board_preview(project):
 
     for side in ('top', 'bottom'):
         try:
-            svg_str = str(stack.to_pretty_svg(side=side)).replace(
-                'style="background-color:white"', ''
-            )
+            svg_str = str(
+                stack.to_pretty_svg(
+                    side=side,
+                    colors={
+                        'copper': '#C9A84C',
+                        'mask': '#004200bf',
+                        'paste': '#999999',
+                        'silk': '#e0e0e0',
+                        'drill': '#303030',
+                        'outline': '#F0C000',
+                    },
+                )
+            ).replace('style="background-color:white"', '')
         except Exception:
             logger.warning('Could not render %s board preview', side, exc_info=True)
             continue
