@@ -99,8 +99,8 @@
       <!-- Board viewer -->
       <div id="gerber-viewer"
            class="relative chamfer-lg overflow-hidden bg-gray-900 ds-outline{% if photos %} hidden{% endif %}"
-           data-top-url="{{ project.board_preview_top.url }}"
-           data-bottom-url="{{ project.board_preview_bottom.url }}">
+           data-top-url="{% url 'board_preview_svg' project.uuid project.slug 'top' %}"
+           data-bottom-url="{% url 'board_preview_svg' project.uuid project.slug 'bottom' %}">
         <div id="gerber-pan-container" class="w-full h-[480px] overflow-hidden" style="cursor:grab">
           <div id="gerber-svg-container"
                class="w-full h-full flex items-center justify-center select-none pointer-events-none">
@@ -249,7 +249,7 @@
           var btn = document.createElement('button');
           btn.className = 'text-xs font-semibold px-2 py-1 chamfer-sm transition-colors '
             + (visible ? 'bg-white/20 text-white' : 'bg-black/50 text-gray-500');
-          btn.innerHTML = '<span class="inline-block w-2 h-2 chamfer-sm mr-1" style="background:'
+          btn.innerHTML = '<span class="inline-block w-2 h-2 rounded-full mr-1" style="background:'
             + layer.color + '"></span>' + layer.label;
           btn.onclick = (function (k, gId) {
             return function () {
