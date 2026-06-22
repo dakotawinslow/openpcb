@@ -137,14 +137,33 @@
 
     <div class="flex gap-2 overflow-x-auto pb-1 gallery-strip">
       {% for p in photos %}
-      <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer transition-opacity ds-outline {% if forloop.first %}opacity-100{% else %}opacity-50{% endif %}"
-           onclick="galleryGoto({{ forloop.counter0 }})">
+      {% if forloop.first %}
+      <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer transition-opacity ds-outline opacity-100"
+           onclick="galleryGoto(0)">
         <img src="{{ p.photo.url }}" alt="{{ p.caption|default:project.title }}" class="w-full h-full object-contain bg-gray-100 dark:bg-gray-800">
       </div>
-      {% endfor %}
       {% if project.board_preview_top %}
-      <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-800 cursor-pointer transition-opacity ds-outline {% if not photos %}opacity-100{% else %}opacity-50{% endif %}"
-           onclick="galleryGoto({{ photos|length }})">
+      <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-800 cursor-pointer transition-opacity ds-outline opacity-50"
+           onclick="galleryGoto(1)">
+        <div class="w-full h-full flex flex-col items-center justify-center text-brand-400">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+          </svg>
+          <span class="text-[10px] font-medium mt-1">Board</span>
+        </div>
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer transition-opacity ds-outline opacity-50"
+           onclick="galleryGoto({{ forloop.counter0 }}{% if project.board_preview_top %} + 1{% endif %})">
+        <img src="{{ p.photo.url }}" alt="{{ p.caption|default:project.title }}" class="w-full h-full object-contain bg-gray-100 dark:bg-gray-800">
+      </div>
+      {% endif %}
+      {% endfor %}
+      {% if project.board_preview_top and not photos %}
+      <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-800 cursor-pointer transition-opacity ds-outline opacity-100"
+           onclick="galleryGoto(0)">
         <div class="w-full h-full flex flex-col items-center justify-center text-brand-400">
           <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -171,8 +190,12 @@
       var photoCount = {{ photos|length }};
       var hasViewer = {% if project.board_preview_top %}true{% else %}false{% endif %};
       var totalSlides = photoCount + (hasViewer ? 1 : 0);
-      var viewerIndex = hasViewer ? photoCount : -1;
+      var viewerIndex = hasViewer ? (photoCount > 0 ? 1 : 0) : -1;
       var galleryIndex = {% if not photos and project.board_preview_top %}viewerIndex{% else %}0{% endif %};
+
+      var photoUrls = [
+        {% for p in photos %}'{{ p.photo.url }}'{% if not forloop.last %},{% endif %}{% endfor %}
+      ];
 
       var galleryMain = document.getElementById('gallery-main');
       var galleryPhotoContainer = document.getElementById('gallery-photo-container');
@@ -188,6 +211,11 @@
       var scale = 1, panX = 0, panY = 0;
       var isDragging = false, dragStartX = 0, dragStartY = 0;
 
+      function slideToPhotoIndex(slide) {
+        if (!hasViewer || slide < viewerIndex) return slide;
+        return slide - 1;
+      }
+
       function showViewer() {
         if (galleryPhotoContainer) galleryPhotoContainer.classList.add('hidden');
         if (gerberViewer) {
@@ -199,12 +227,13 @@
         }
       }
 
-      function showPhoto(index) {
+      function showPhoto(slideIndex) {
         if (gerberViewer) gerberViewer.classList.add('hidden');
         if (galleryPhotoContainer) {
           galleryPhotoContainer.classList.remove('hidden');
-          if (galleryMain) {
-            galleryMain.src = galleryThumbs[index].querySelector('img').src;
+          var photoIdx = slideToPhotoIndex(slideIndex);
+          if (galleryMain && photoUrls[photoIdx]) {
+            galleryMain.src = photoUrls[photoIdx];
           }
         }
       }
