@@ -61,8 +61,8 @@
       </span>
 
       {% if not project.is_public %}
-      <span class="text-xs font-medium px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 chamfer-sm ds-outline">
-        Private
+      <span class="text-xs font-medium px-2 py-0.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 chamfer-sm">
+        Hidden
       </span>
       {% endif %}
     </div>
@@ -405,57 +405,6 @@
   </script>
   {% endif %}
 
-  <!-- ── Manage photos (owner only) ──────────────────────────────── -->
-  {% if user == project.owner %}
-  <div class="mb-8 bg-white dark:bg-gray-900 p-6 chamfer-lg ds-outline">
-    <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">Manage photos</h2>
-
-    {% if photos %}
-    <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">Drag to reorder. Changes are saved automatically.</p>
-    <div id="photo-manage-grid" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-4"
-         data-reorder-url="{% url 'photo_reorder' project.uuid project.slug %}">
-      {% for p in photos %}
-      <div class="photo-manage-item relative aspect-square chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 ds-outline cursor-grab active:cursor-grabbing"
-           draggable="true" data-photo-id="{{ p.id }}">
-        <img src="{{ p.photo.url }}" alt="" class="w-full h-full object-contain bg-gray-100 dark:bg-gray-800 pointer-events-none">
-        {% if p.is_featured %}
-        <span class="absolute top-1 left-1 text-[10px] font-semibold px-1.5 py-0.5 bg-brand-600 text-white chamfer-sm">
-          Featured
-        </span>
-        {% else %}
-        <form method="post" action="{% url 'photo_set_featured' project.uuid project.slug p.id %}" class="absolute top-1 left-1">
-          {% csrf_token %}
-          <button type="submit" class="text-[10px] font-semibold px-1.5 py-0.5 bg-black/60 hover:bg-brand-600 text-white chamfer-sm transition-colors">
-            Set featured
-          </button>
-        </form>
-        {% endif %}
-        <form method="post" action="{% url 'photo_delete' project.uuid project.slug p.id %}" class="absolute top-1 right-1"
-              onsubmit="return confirm('Delete this photo?');">
-          {% csrf_token %}
-          <button type="submit" class="w-5 h-5 flex items-center justify-center text-xs font-bold bg-black/60 hover:bg-red-600 text-white chamfer-sm transition-colors">
-            &times;
-          </button>
-        </form>
-      </div>
-      {% endfor %}
-    </div>
-    {% else %}
-    <p class="text-sm text-gray-400 dark:text-gray-600 mb-4">No photos yet. The first photo you upload becomes the gallery cover and card thumbnail.</p>
-    {% endif %}
-
-    <form method="post" action="{% url 'photo_upload' project.uuid project.slug %}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3">
-      {% csrf_token %}
-      <input type="file" name="photos" id="photo-upload-input" multiple accept="image/jpeg,image/png,image/webp,image/gif"
-             class="text-sm text-gray-600 dark:text-gray-400 file:mr-3 file:px-3 file:py-1.5 file:chamfer-sm file:border-0 file:bg-brand-50 dark:file:bg-brand-900 file:text-brand-700 dark:file:text-brand-400 file:text-sm file:font-medium file:cursor-pointer">
-      <button type="submit" id="photo-upload-btn" disabled
-              class="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-200 dark:disabled:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-600 disabled:hover:bg-gray-200 dark:disabled:hover:bg-gray-800 disabled:cursor-not-allowed text-white text-sm font-semibold chamfer transition-colors flex-shrink-0">
-        Upload
-      </button>
-    </form>
-    <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">JPG, PNG, WEBP or GIF, up to 20MB each.</p>
-  </div>
-  {% endif %}
   {% endwith %}
 
   <!-- ── Two-column body ────────────────────────────────────────── -->
@@ -533,17 +482,6 @@
               DL
             </a>
 
-            {% if user == project.owner %}
-            <form method="post" action="{% url 'file_delete' project.uuid project.slug file.id %}"
-                  onsubmit="return confirm('Delete this file?');">
-              {% csrf_token %}
-              <button type="submit"
-                      class="flex-shrink-0 flex items-center justify-center w-7 h-7 text-xs font-bold text-gray-400 hover:bg-red-600 hover:text-white transition-colors chamfer-sm ds-outline">
-                &times;
-              </button>
-            </form>
-            {% endif %}
-
           </li>
           {% endfor %}
         </ul>
@@ -554,82 +492,11 @@
         {% endif %}
         {% endwith %}
 
-        {% if user == project.owner %}
-        <div class="px-5 py-4 border-t border-gray-100 dark:border-gray-800">
-          <form method="post" action="{% url 'file_upload' project.uuid project.slug %}" enctype="multipart/form-data" class="space-y-2">
-            {% csrf_token %}
-            <input type="file" name="files" id="file-upload-input" multiple
-                   class="block w-full text-xs text-gray-600 dark:text-gray-400 file:mr-3 file:px-3 file:py-1.5 file:chamfer-sm file:border-0 file:bg-brand-50 dark:file:bg-brand-900 file:text-brand-700 dark:file:text-brand-400 file:text-xs file:font-medium file:cursor-pointer">
-            <button type="submit" id="file-upload-btn" disabled
-                    class="w-full px-4 py-1.5 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-200 dark:disabled:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-600 disabled:hover:bg-gray-200 dark:disabled:hover:bg-gray-800 disabled:cursor-not-allowed text-white text-sm font-semibold chamfer transition-colors">
-              Upload files
-            </button>
-          </form>
-          <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">Gerbers, KiCad/Eagle projects, BOM, schematics, etc. Up to 100MB each.</p>
-        </div>
-        {% endif %}
-
       </div>
     </div>
 
   </div>
 
-  {% if user == project.owner %}
-  <script>
-    (function () {
-      function enableOnFileSelect(inputId, buttonId) {
-        var input = document.getElementById(inputId);
-        var button = document.getElementById(buttonId);
-        if (!input || !button) return;
-        input.addEventListener('change', function () {
-          button.disabled = input.files.length === 0;
-        });
-      }
-      enableOnFileSelect('photo-upload-input', 'photo-upload-btn');
-      enableOnFileSelect('file-upload-input', 'file-upload-btn');
-
-      // Drag-and-drop photo reordering
-      var grid = document.getElementById('photo-manage-grid');
-      if (grid) {
-        var dragged = null;
-
-        grid.querySelectorAll('.photo-manage-item').forEach(function (item) {
-          item.addEventListener('dragstart', function () {
-            dragged = item;
-            item.classList.add('opacity-40');
-          });
-          item.addEventListener('dragend', function () {
-            item.classList.remove('opacity-40');
-            dragged = null;
-            saveOrder();
-          });
-          item.addEventListener('dragover', function (e) {
-            e.preventDefault();
-            if (!dragged || dragged === item) return;
-            var rect = item.getBoundingClientRect();
-            var insertAfter = (e.clientX - rect.left) > rect.width / 2;
-            grid.insertBefore(dragged, insertAfter ? item.nextSibling : item);
-          });
-        });
-
-        function saveOrder() {
-          var ids = Array.prototype.map.call(
-            grid.querySelectorAll('.photo-manage-item'),
-            function (el) { return el.dataset.photoId; }
-          );
-          var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-          var formData = new FormData();
-          ids.forEach(function (id) { formData.append('photo_id', id); });
-          fetch(grid.dataset.reorderUrl, {
-            method: 'POST',
-            headers: { 'X-CSRFToken': csrfToken },
-            body: formData,
-          });
-        }
-      }
-    }());
-  </script>
-  {% endif %}
 
   <!-- ── Order This Board ───────────────────────────────────────── -->
   <div class="mb-12 opacity-60">

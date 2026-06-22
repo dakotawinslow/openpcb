@@ -1,9 +1,18 @@
+import io
+
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from PIL import Image
 
-from core.models import Project
+from core.models import Project, ProjectFile, ProjectPhoto
+
+
+def _png(name='photo.png'):
+    buf = io.BytesIO()
+    Image.new('RGB', (4, 4), color='red').save(buf, format='PNG')
+    return SimpleUploadedFile(name, buf.getvalue(), content_type='image/png')
 
 
 class HealthzTests(TestCase):
@@ -127,3 +136,161 @@ class ExploreViewTests(TestCase):
         resp = self.client.get(reverse('explore'), {'q': 'RP2040'})
         titles = [p.title for p in resp.context['page_obj']]
         self.assertEqual(titles, ['Public RP2040 Board'])
+
+
+class UnifiedEditUITests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner', password='pw')
+        self.project = Project.objects.create(
+            owner=self.owner, title='Test Board', license='MIT', is_public=True
+        )
+
+    def _edit_url(self):
+        return reverse(
+            'project_edit', kwargs={'uuid': self.project.uuid, 'slug': self.project.slug}
+        )
+
+    def _detail_url(self):
+        return reverse(
+            'project_detail', kwargs={'uuid': self.project.uuid, 'slug': self.project.slug}
+        )
+
+    def test_create_redirects_to_edit_page(self):
+        self.client.force_login(self.owner)
+        resp = self.client.post(
+            reverse('project_create'),
+            {'title': 'New Board'},
+        )
+        self.assertEqual(resp.status_code, 302)
+        new_project = Project.objects.get(title='New Board')
+        expected = reverse(
+            'project_edit',
+            kwargs={'uuid': new_project.uuid, 'slug': new_project.slug},
+        )
+        self.assertEqual(resp.url, expected)
+
+    def test_edit_save_redirects_to_detail_page(self):
+        self.client.force_login(self.owner)
+        resp = self.client.post(
+            self._edit_url(),
+            {'title': 'Updated Board', 'license': 'MIT', 'tags_input': ''},
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.project.refresh_from_db()
+        expected = reverse(
+            'project_detail',
+            kwargs={'uuid': self.project.uuid, 'slug': self.project.slug},
+        )
+        self.assertEqual(resp.url, expected)
+
+    def test_edit_page_has_project_in_context(self):
+        self.client.force_login(self.owner)
+        resp = self.client.get(self._edit_url())
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.context['project'], self.project)
+
+    def test_photo_upload_redirects_to_edit(self):
+        self.client.force_login(self.owner)
+        url = reverse(
+            'photo_upload',
+            kwargs={'uuid': self.project.uuid, 'slug': self.project.slug},
+        )
+        resp = self.client.post(url, {'photos': [_png('board.png')]})
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn(self._edit_url(), resp.url)
+        self.assertIn('#photos', resp.url)
+
+    def test_photo_delete_redirects_to_edit(self):
+        self.client.force_login(self.owner)
+        photo = ProjectPhoto.objects.create(
+            project=self.project,
+            photo=_png(),
+        )
+        url = reverse(
+            'photo_delete',
+            kwargs={
+                'uuid': self.project.uuid,
+                'slug': self.project.slug,
+                'photo_id': photo.pk,
+            },
+        )
+        resp = self.client.post(url)
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn(self._edit_url(), resp.url)
+        self.assertIn('#photos', resp.url)
+
+    def test_photo_set_featured_redirects_to_edit(self):
+        self.client.force_login(self.owner)
+        photo = ProjectPhoto.objects.create(
+            project=self.project,
+            photo=_png(),
+        )
+        url = reverse(
+            'photo_set_featured',
+            kwargs={
+                'uuid': self.project.uuid,
+                'slug': self.project.slug,
+                'photo_id': photo.pk,
+            },
+        )
+        resp = self.client.post(url)
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn(self._edit_url(), resp.url)
+        self.assertIn('#photos', resp.url)
+
+    def test_file_upload_redirects_to_edit(self):
+        self.client.force_login(self.owner)
+        url = reverse(
+            'file_upload',
+            kwargs={'uuid': self.project.uuid, 'slug': self.project.slug},
+        )
+        f = SimpleUploadedFile('board.zip', b'zip bytes')
+        resp = self.client.post(url, {'files': [f]})
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn(self._edit_url(), resp.url)
+        self.assertIn('#files', resp.url)
+
+    def test_file_delete_redirects_to_edit(self):
+        self.client.force_login(self.owner)
+        pf = ProjectFile.objects.create(
+            project=self.project,
+            file=SimpleUploadedFile('board.zip', b'zip bytes'),
+            original_filename='board.zip',
+            file_size=100,
+            file_type='Other',
+        )
+        url = reverse(
+            'file_delete',
+            kwargs={
+                'uuid': self.project.uuid,
+                'slug': self.project.slug,
+                'file_id': pf.pk,
+            },
+        )
+        resp = self.client.post(url)
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn(self._edit_url(), resp.url)
+        self.assertIn('#files', resp.url)
+
+    def test_detail_page_no_management_ui(self):
+        self.client.force_login(self.owner)
+        ProjectFile.objects.create(
+            project=self.project,
+            file=SimpleUploadedFile('board.zip', b'zip bytes'),
+            original_filename='board.zip',
+            file_size=100,
+            file_type='Other',
+        )
+        resp = self.client.get(self._detail_url())
+        content = resp.content.decode()
+        self.assertNotIn('photo_upload', content)
+        self.assertNotIn('file_upload', content)
+        self.assertNotIn('file_delete', content)
+        self.assertNotIn('Manage photos', content)
+
+    def test_create_page_no_file_photo_sections(self):
+        self.client.force_login(self.owner)
+        resp = self.client.get(reverse('project_create'))
+        content = resp.content.decode()
+        self.assertNotIn('Project Files', content)
+        self.assertNotIn('id="photos"', content)

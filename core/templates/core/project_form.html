@@ -3,13 +3,13 @@
 {% block title %}{% if object %}Edit {{ object.title }}{% else %}New project{% endif %} — OpenPCB{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
   <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">
     {% if object %}Edit project{% else %}Share a project{% endif %}
   </h1>
   <p class="text-sm text-gray-500 dark:text-gray-400 mb-8">
-    {% if object %}Update your project details below.{% else %}Fill in the details to publish your PCB design.{% endif %}
+    {% if object %}Update your project details below.{% else %}Give your project a name to get started.{% endif %}
   </p>
 
   {% if form.non_field_errors %}
@@ -18,116 +18,305 @@
     </div>
   {% endif %}
 
-  <form method="post" class="space-y-6">
-    {% csrf_token %}
+  <!-- ── Details ──────────────────────────────────────────────────── -->
+  <div class="bg-white dark:bg-gray-900 p-6 chamfer-lg ds-outline mb-8">
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-4">Details</h2>
 
-    <!-- Title -->
-    <div>
-      <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        Title <span class="text-red-500">*</span>
-      </label>
-      <input
-        type="text"
-        name="{{ form.title.html_name }}"
-        id="{{ form.title.id_for_label }}"
-        value="{{ form.title.value|default:'' }}"
-        class="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm chamfer ds-outline focus:outline-none"
-        {% if form.title.errors %}aria-invalid="true"{% endif %}
-      >
-      {% if form.title.errors %}
-        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.title.errors|join:", " }}</p>
-      {% endif %}
-    </div>
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
 
-    <!-- Description -->
-    <div>
-      <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        Description
-      </label>
-      <textarea
-        name="{{ form.description.html_name }}"
-        id="{{ form.description.id_for_label }}"
-        rows="5"
-        class="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm chamfer ds-outline focus:outline-none resize-y"
-        {% if form.description.errors %}aria-invalid="true"{% endif %}
-      >{{ form.description.value|default:'' }}</textarea>
-      {% if form.description.errors %}
-        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.description.errors|join:", " }}</p>
-      {% endif %}
-    </div>
+      <div>
+        <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Title <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          name="{{ form.title.html_name }}"
+          id="{{ form.title.id_for_label }}"
+          value="{{ form.title.value|default:'' }}"
+          class="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm chamfer ds-outline focus:outline-none"
+          {% if form.title.errors %}aria-invalid="true"{% endif %}
+        >
+        {% if form.title.errors %}
+          <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.title.errors|join:", " }}</p>
+        {% endif %}
+      </div>
 
-    <!-- License -->
-    <div>
-      <label for="{{ form.license.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        License <span class="text-red-500">*</span>
-      </label>
-      <select
-        name="{{ form.license.html_name }}"
-        id="{{ form.license.id_for_label }}"
-        class="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm chamfer ds-outline focus:outline-none"
-      >
-        {% for value, label in form.fields.license.choices %}
-        <option value="{{ value }}" {% if form.license.value == value %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-      {% if form.license.errors %}
-        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.license.errors|join:", " }}</p>
-      {% endif %}
-    </div>
-
-    <!-- Tags -->
-    <div>
-      <label for="{{ form.tags_input.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-        Tags
-      </label>
-      <input
-        type="text"
-        name="{{ form.tags_input.html_name }}"
-        id="{{ form.tags_input.id_for_label }}"
-        value="{{ form.tags_input.value|default:'' }}"
-        placeholder="{{ form.tags_input.field.widget.attrs.placeholder }}"
-        class="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm chamfer ds-outline focus:outline-none"
-      >
-      <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">{{ form.tags_input.help_text }}</p>
-      {% if form.tags_input.errors %}
-        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.tags_input.errors|join:", " }}</p>
-      {% endif %}
-    </div>
-
-    <!-- Visibility -->
-    <div class="flex items-center gap-3">
-      <input
-        type="checkbox"
-        name="{{ form.is_public.html_name }}"
-        id="{{ form.is_public.id_for_label }}"
-        class="w-4 h-4 accent-brand-600"
-        {% if form.is_public.value %}checked{% endif %}
-      >
-      <label for="{{ form.is_public.id_for_label }}" class="text-sm text-gray-700 dark:text-gray-300">
-        Make this project public
-      </label>
-    </div>
-
-    <!-- Actions -->
-    <div class="flex items-center gap-3 pt-2">
-      <button type="submit"
-        class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm chamfer transition-colors">
-        {% if object %}Save changes{% else %}Publish project{% endif %}
-      </button>
       {% if object %}
-        <a href="{% url 'project_detail' object.uuid object.slug %}"
-           class="px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-          Cancel
-        </a>
-      {% else %}
-        <a href="{% url 'explore' %}"
-           class="px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-          Cancel
-        </a>
+      <div>
+        <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Description
+        </label>
+        <textarea
+          name="{{ form.description.html_name }}"
+          id="{{ form.description.id_for_label }}"
+          rows="5"
+          class="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm chamfer ds-outline focus:outline-none resize-y"
+          {% if form.description.errors %}aria-invalid="true"{% endif %}
+        >{{ form.description.value|default:'' }}</textarea>
+        {% if form.description.errors %}
+          <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.description.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="{{ form.license.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          License <span class="text-red-500">*</span>
+        </label>
+        <select
+          name="{{ form.license.html_name }}"
+          id="{{ form.license.id_for_label }}"
+          class="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm chamfer ds-outline focus:outline-none"
+        >
+          {% for value, label in form.fields.license.choices %}
+          <option value="{{ value }}" {% if form.license.value == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if form.license.errors %}
+          <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.license.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="{{ form.tags_input.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          Tags
+        </label>
+        <input
+          type="text"
+          name="{{ form.tags_input.html_name }}"
+          id="{{ form.tags_input.id_for_label }}"
+          value="{{ form.tags_input.value|default:'' }}"
+          placeholder="{{ form.tags_input.field.widget.attrs.placeholder }}"
+          class="w-full px-3 py-2 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm chamfer ds-outline focus:outline-none"
+        >
+        <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">{{ form.tags_input.help_text }}</p>
+        {% if form.tags_input.errors %}
+          <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ form.tags_input.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <div class="flex items-center gap-3">
+          <input
+            type="checkbox"
+            name="{{ form.is_public.html_name }}"
+            id="{{ form.is_public.id_for_label }}"
+            class="w-4 h-4 accent-brand-600"
+            {% if form.is_public.value %}checked{% endif %}
+          >
+          <label for="{{ form.is_public.id_for_label }}" class="text-sm text-gray-700 dark:text-gray-300">
+            Make this project visible
+          </label>
+        </div>
+        <div id="visibility-warning" class="mt-2 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm chamfer{% if form.is_public.value %} hidden{% endif %}">
+          This project is currently hidden. Only you can see it.
+        </div>
+      </div>
       {% endif %}
+
+      <div class="flex items-center gap-3 pt-2">
+        <button type="submit"
+          class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm chamfer transition-colors">
+          {% if object %}Save changes{% else %}Continue{% endif %}
+        </button>
+        {% if object %}
+          <a href="{% url 'project_detail' object.uuid object.slug %}"
+             class="px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+            Cancel
+          </a>
+        {% else %}
+          <a href="{% url 'explore' %}"
+             class="px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+            Cancel
+          </a>
+        {% endif %}
+      </div>
+
+    </form>
+  </div>
+
+  {% if object %}
+  <!-- ── Project Files ────────────────────────────────────────────── -->
+  <div id="files" class="bg-white dark:bg-gray-900 chamfer-lg ds-outline overflow-hidden mb-8">
+
+    <div class="px-6 py-4">
+      <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Project Files</h2>
     </div>
 
-  </form>
+    {% with files=project.files.all %}
+    {% if files %}
+    <ul class="divide-y divide-gray-100 dark:divide-gray-800 border-t border-gray-100 dark:border-gray-800">
+      {% for file in files %}
+      <li class="flex items-center gap-3 px-6 py-3">
+
+        <svg class="w-8 h-8 flex-shrink-0 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{{ file.original_filename }}</p>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="text-xs font-medium px-1.5 py-0.5 chamfer-sm
+              {% if file.file_type == 'Gerber' %}bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-400 ds-outline-brand
+              {% elif file.file_type == 'KiCad' %}bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400
+              {% elif file.file_type == 'BOM' %}bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400
+              {% elif file.file_type == 'Schematic' %}bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-400
+              {% else %}bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400{% endif %}">
+              {{ file.file_type }}
+            </span>
+            <span class="text-xs text-gray-400 dark:text-gray-500">{{ file.file_size|filesizeformat }}</span>
+          </div>
+        </div>
+
+        <form method="post" action="{% url 'file_delete' project.uuid project.slug file.id %}"
+              onsubmit="return confirm('Delete this file?');">
+          {% csrf_token %}
+          <button type="submit"
+                  class="flex-shrink-0 flex items-center justify-center w-7 h-7 text-xs font-bold text-gray-400 hover:bg-red-600 hover:text-white transition-colors chamfer-sm ds-outline">
+            &times;
+          </button>
+        </form>
+
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="px-6 py-8 text-center text-sm text-gray-400 dark:text-gray-600 border-t border-gray-100 dark:border-gray-800">
+      No files uploaded yet.
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800">
+      <form method="post" action="{% url 'file_upload' project.uuid project.slug %}" enctype="multipart/form-data" class="space-y-2">
+        {% csrf_token %}
+        <input type="file" name="files" id="file-upload-input" multiple
+               class="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-3 file:px-3 file:py-1.5 file:chamfer-sm file:border-0 file:bg-brand-50 dark:file:bg-brand-900 file:text-brand-700 dark:file:text-brand-400 file:text-sm file:font-medium file:cursor-pointer">
+        <button type="submit" id="file-upload-btn" disabled
+                class="w-full px-4 py-1.5 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-200 dark:disabled:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-600 disabled:hover:bg-gray-200 dark:disabled:hover:bg-gray-800 disabled:cursor-not-allowed text-white text-sm font-semibold chamfer transition-colors">
+          Upload files
+        </button>
+      </form>
+      <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">Gerbers, KiCad/Eagle projects, BOM, schematics, etc. Up to 100MB each.</p>
+    </div>
+
+  </div>
+
+  <!-- ── Photos ───────────────────────────────────────────────────── -->
+  <div id="photos" class="bg-white dark:bg-gray-900 p-6 chamfer-lg ds-outline mb-8">
+    <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">Photos</h2>
+
+    {% with photos=project.photos.all %}
+    {% if photos %}
+    <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">Drag to reorder. Changes are saved automatically.</p>
+    <div id="photo-manage-grid" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-4"
+         data-reorder-url="{% url 'photo_reorder' project.uuid project.slug %}">
+      {% for p in photos %}
+      <div class="photo-manage-item relative aspect-square chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 ds-outline cursor-grab active:cursor-grabbing"
+           draggable="true" data-photo-id="{{ p.id }}">
+        <img src="{{ p.photo.url }}" alt="" class="w-full h-full object-contain bg-gray-100 dark:bg-gray-800 pointer-events-none">
+        {% if p.is_featured %}
+        <span class="absolute top-1 left-1 text-[10px] font-semibold px-1.5 py-0.5 bg-brand-600 text-white chamfer-sm">
+          Featured
+        </span>
+        {% else %}
+        <form method="post" action="{% url 'photo_set_featured' project.uuid project.slug p.id %}" class="absolute top-1 left-1">
+          {% csrf_token %}
+          <button type="submit" class="text-[10px] font-semibold px-1.5 py-0.5 bg-black/60 hover:bg-brand-600 text-white chamfer-sm transition-colors">
+            Set featured
+          </button>
+        </form>
+        {% endif %}
+        <form method="post" action="{% url 'photo_delete' project.uuid project.slug p.id %}" class="absolute top-1 right-1"
+              onsubmit="return confirm('Delete this photo?');">
+          {% csrf_token %}
+          <button type="submit" class="w-5 h-5 flex items-center justify-center text-xs font-bold bg-black/60 hover:bg-red-600 text-white chamfer-sm transition-colors">
+            &times;
+          </button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-400 dark:text-gray-600 mb-4">No photos yet. The first photo you upload becomes the gallery cover and card thumbnail.</p>
+    {% endif %}
+    {% endwith %}
+
+    <form method="post" action="{% url 'photo_upload' project.uuid project.slug %}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-3">
+      {% csrf_token %}
+      <input type="file" name="photos" id="photo-upload-input" multiple accept="image/jpeg,image/png,image/webp,image/gif"
+             class="text-sm text-gray-600 dark:text-gray-400 file:mr-3 file:px-3 file:py-1.5 file:chamfer-sm file:border-0 file:bg-brand-50 dark:file:bg-brand-900 file:text-brand-700 dark:file:text-brand-400 file:text-sm file:font-medium file:cursor-pointer">
+      <button type="submit" id="photo-upload-btn" disabled
+              class="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-200 dark:disabled:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-600 disabled:hover:bg-gray-200 dark:disabled:hover:bg-gray-800 disabled:cursor-not-allowed text-white text-sm font-semibold chamfer transition-colors flex-shrink-0">
+        Upload
+      </button>
+    </form>
+    <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">JPG, PNG, WEBP or GIF, up to 20MB each.</p>
+  </div>
+
+  <script>
+    (function () {
+      function enableOnFileSelect(inputId, buttonId) {
+        var input = document.getElementById(inputId);
+        var button = document.getElementById(buttonId);
+        if (!input || !button) return;
+        input.addEventListener('change', function () {
+          button.disabled = input.files.length === 0;
+        });
+      }
+      enableOnFileSelect('photo-upload-input', 'photo-upload-btn');
+      enableOnFileSelect('file-upload-input', 'file-upload-btn');
+
+      var checkbox = document.getElementById('{{ form.is_public.id_for_label }}');
+      var warning = document.getElementById('visibility-warning');
+      if (checkbox && warning) {
+        checkbox.addEventListener('change', function () {
+          warning.classList.toggle('hidden', checkbox.checked);
+        });
+      }
+
+      var grid = document.getElementById('photo-manage-grid');
+      if (grid) {
+        var dragged = null;
+
+        grid.querySelectorAll('.photo-manage-item').forEach(function (item) {
+          item.addEventListener('dragstart', function () {
+            dragged = item;
+            item.classList.add('opacity-40');
+          });
+          item.addEventListener('dragend', function () {
+            item.classList.remove('opacity-40');
+            dragged = null;
+            saveOrder();
+          });
+          item.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            if (!dragged || dragged === item) return;
+            var rect = item.getBoundingClientRect();
+            var insertAfter = (e.clientX - rect.left) > rect.width / 2;
+            grid.insertBefore(dragged, insertAfter ? item.nextSibling : item);
+          });
+        });
+
+        function saveOrder() {
+          var ids = Array.prototype.map.call(
+            grid.querySelectorAll('.photo-manage-item'),
+            function (el) { return el.dataset.photoId; }
+          );
+          var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+          var formData = new FormData();
+          ids.forEach(function (id) { formData.append('photo_id', id); });
+          fetch(grid.dataset.reorderUrl, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+            body: formData,
+          });
+        }
+      }
+    }());
+  </script>
+  {% endif %}
 
 </div>
 {% endblock %}

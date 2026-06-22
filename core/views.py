@@ -167,7 +167,7 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse(
-            'project_detail',
+            'project_edit',
             kwargs={
                 'uuid': self.object.uuid,
                 'slug': self.object.slug,
@@ -195,7 +195,15 @@ class ProjectUpdateView(LoginRequiredMixin, OwnerOnlyMixin, UpdateView):
     template_name = 'core/project_form.html'
 
     def get_object(self, queryset=None):
-        return get_object_or_404(Project, uuid=self.kwargs['uuid'])
+        return get_object_or_404(
+            Project.objects.prefetch_related('files', 'photos'),
+            uuid=self.kwargs['uuid'],
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['project'] = self.object
+        return ctx
 
     def get_success_url(self):
         return reverse(
@@ -223,6 +231,13 @@ def _get_owned_project(request, uuid):
     return project
 
 
+def _redirect_to_edit(project, fragment=''):
+    url = reverse('project_edit', kwargs={'uuid': project.uuid, 'slug': project.slug})
+    if fragment:
+        url += f'#{fragment}'
+    return redirect(url)
+
+
 @login_required
 def photo_upload(request, uuid, slug):
     project = _get_owned_project(request, uuid)
@@ -244,7 +259,7 @@ def photo_upload(request, uuid, slug):
                     photo.save()
                 else:
                     messages.error(request, f'{f.name}: ' + ' '.join(form.errors.get('photo', [])))
-    return redirect('project_detail', uuid=project.uuid, slug=project.slug)
+    return _redirect_to_edit(project, 'photos')
 
 
 @login_required
@@ -253,7 +268,7 @@ def photo_delete(request, uuid, slug, photo_id):
     photo = get_object_or_404(ProjectPhoto, pk=photo_id, project=project)
     if request.method == 'POST':
         photo.delete()
-    return redirect('project_detail', uuid=project.uuid, slug=project.slug)
+    return _redirect_to_edit(project, 'photos')
 
 
 @login_required
@@ -263,7 +278,7 @@ def photo_set_featured(request, uuid, slug, photo_id):
     if request.method == 'POST' and not photo.is_featured:
         photo.is_featured = True
         photo.save()
-    return redirect('project_detail', uuid=project.uuid, slug=project.slug)
+    return _redirect_to_edit(project, 'photos')
 
 
 @login_required
@@ -300,7 +315,7 @@ def file_upload(request, uuid, slug):
                     project_file.save()
                 else:
                     messages.error(request, f'{f.name}: ' + ' '.join(form.errors.get('file', [])))
-    return redirect('project_detail', uuid=project.uuid, slug=project.slug)
+    return _redirect_to_edit(project, 'files')
 
 
 @login_required
@@ -309,7 +324,7 @@ def file_delete(request, uuid, slug, file_id):
     project_file = get_object_or_404(ProjectFile, pk=file_id, project=project)
     if request.method == 'POST':
         project_file.delete()
-    return redirect('project_detail', uuid=project.uuid, slug=project.slug)
+    return _redirect_to_edit(project, 'files')
 
 
 def file_download(request, uuid, slug, file_id):

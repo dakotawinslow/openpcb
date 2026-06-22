@@ -31,6 +31,8 @@ class ProjectForm(forms.ModelForm):
             self.fields['tags_input'].initial = ', '.join(
                 self.instance.tags.values_list('name', flat=True)
             )
+        else:
+            self.fields['license'].required = False
 
     def save(self, commit=True):
         project = super().save(commit=commit)
