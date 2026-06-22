@@ -102,19 +102,24 @@
            data-top-url="{{ project.board_preview_top.url }}"
            data-bottom-url="{{ project.board_preview_bottom.url }}">
         <div id="gerber-pan-container" class="w-full h-[480px] overflow-hidden" style="cursor:grab">
-          <img id="gerber-svg-img" src="" alt="Board preview"
-               class="w-full h-full object-contain select-none pointer-events-none"
-               draggable="false">
+          <div id="gerber-svg-container"
+               class="w-full h-full flex items-center justify-center select-none pointer-events-none">
+          </div>
         </div>
-        <div class="absolute top-3 right-3 flex gap-1 z-10">
-          <button id="gerber-top-btn" onclick="gerberShowSide('top')"
-                  class="text-xs font-semibold px-3 py-1.5 chamfer-sm transition-colors bg-brand-600 text-white">
-            Top
-          </button>
-          <button id="gerber-bottom-btn" onclick="gerberShowSide('bottom')"
-                  class="text-xs font-semibold px-3 py-1.5 chamfer-sm transition-colors bg-black/50 text-gray-300 hover:bg-black/70">
-            Bottom
-          </button>
+        <div class="absolute bottom-0 left-0 right-0 z-10 bg-black/60 backdrop-blur-sm px-3 py-2 flex items-center gap-3 flex-wrap">
+          <div class="flex gap-1">
+            <button id="gerber-top-btn" onclick="gerberShowSide('top')"
+                    class="text-xs font-semibold px-3 py-1.5 chamfer-sm transition-colors bg-brand-600 text-white">
+              Top
+            </button>
+            <button id="gerber-bottom-btn" onclick="gerberShowSide('bottom')"
+                    class="text-xs font-semibold px-3 py-1.5 chamfer-sm transition-colors bg-black/50 text-gray-300 hover:bg-black/70">
+              Bottom
+            </button>
+          </div>
+          <div class="w-px h-5 bg-white/20"></div>
+          <div id="gerber-layer-toggles" class="flex gap-1 flex-wrap">
+          </div>
         </div>
       </div>
       {% endif %}
@@ -204,9 +209,10 @@
       var galleryThumbs = document.querySelectorAll('.gallery-thumb');
 
       var gerberViewer = document.getElementById('gerber-viewer');
-      var gerberImg = document.getElementById('gerber-svg-img');
-      var gerberLoaded = false;
+      var gerberContainer = document.getElementById('gerber-svg-container');
+      var svgCache = {};
       var currentSide = 'top';
+      var layerVisibility = {};
 
       var scale = 1, panX = 0, panY = 0;
       var isDragging = false, dragStartX = 0, dragStartY = 0;
@@ -216,13 +222,77 @@
         return slide - 1;
       }
 
+      var LAYER_META = [
+        { id: 'copper', label: 'Copper', color: '#C9A84C' },
+        { id: 'mask', label: 'Mask', color: '#004200' },
+        { id: 'silk', label: 'Silk', color: '#e0e0e0' },
+        { id: 'paste', label: 'Paste', color: '#999999' },
+        { id: 'drill', label: 'Drill', color: '#303030' },
+        { id: 'outline', label: 'Outline', color: '#F0C000' },
+      ];
+
+      function buildLayerToggles(svgEl, side) {
+        var toggleContainer = document.getElementById('gerber-layer-toggles');
+        toggleContainer.innerHTML = '';
+        LAYER_META.forEach(function (layer) {
+          var groupId = layer.id === 'drill' ? 'l-drill-0'
+            : layer.id === 'outline' ? 'l-mechanical-outline'
+            : 'l-' + side + '-' + layer.id;
+          var group = svgEl.querySelector('#' + groupId);
+          if (!group) return;
+
+          var key = layer.id;
+          if (!(key in layerVisibility)) layerVisibility[key] = true;
+          var visible = layerVisibility[key];
+          group.style.display = visible ? '' : 'none';
+
+          var btn = document.createElement('button');
+          btn.className = 'text-xs font-semibold px-2 py-1 chamfer-sm transition-colors '
+            + (visible ? 'bg-white/20 text-white' : 'bg-black/50 text-gray-500');
+          btn.innerHTML = '<span class="inline-block w-2 h-2 chamfer-sm mr-1" style="background:'
+            + layer.color + '"></span>' + layer.label;
+          btn.onclick = (function (k, gId) {
+            return function () {
+              layerVisibility[k] = !layerVisibility[k];
+              var g = gerberContainer.querySelector('#' + gId);
+              if (g) g.style.display = layerVisibility[k] ? '' : 'none';
+              this.className = 'text-xs font-semibold px-2 py-1 chamfer-sm transition-colors '
+                + (layerVisibility[k] ? 'bg-white/20 text-white' : 'bg-black/50 text-gray-500');
+            };
+          })(key, groupId);
+          toggleContainer.appendChild(btn);
+        });
+      }
+
+      function loadSvgSide(side, callback) {
+        if (svgCache[side]) {
+          gerberContainer.innerHTML = '';
+          gerberContainer.appendChild(svgCache[side].cloneNode(true));
+          if (callback) callback();
+          return;
+        }
+        var url = gerberViewer.dataset[side + 'Url'];
+        fetch(url).then(function (r) { return r.text(); }).then(function (text) {
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(text, 'image/svg+xml');
+          var svg = doc.documentElement;
+          svg.setAttribute('width', '100%');
+          svg.setAttribute('height', '100%');
+          svg.style.maxWidth = '100%';
+          svg.style.maxHeight = '100%';
+          svgCache[side] = svg;
+          gerberContainer.innerHTML = '';
+          gerberContainer.appendChild(svg.cloneNode(true));
+          if (callback) callback();
+        });
+      }
+
       function showViewer() {
         if (galleryPhotoContainer) galleryPhotoContainer.classList.add('hidden');
         if (gerberViewer) {
           gerberViewer.classList.remove('hidden');
-          if (!gerberLoaded) {
+          if (!svgCache[currentSide]) {
             window.gerberShowSide('top');
-            gerberLoaded = true;
           }
         }
       }
@@ -266,9 +336,13 @@
       window.gerberShowSide = function (side) {
         currentSide = side;
         if (!gerberViewer) return;
-        gerberImg.src = gerberViewer.dataset[side + 'Url'];
         scale = 1; panX = 0; panY = 0;
         applyTransform();
+
+        loadSvgSide(side, function () {
+          var svgEl = gerberContainer.querySelector('svg');
+          if (svgEl) buildLayerToggles(svgEl, side);
+        });
 
         var topBtn = document.getElementById('gerber-top-btn');
         var bottomBtn = document.getElementById('gerber-bottom-btn');
@@ -282,8 +356,8 @@
       };
 
       function applyTransform() {
-        if (gerberImg) {
-          gerberImg.style.transform = 'translate(' + panX + 'px, ' + panY + 'px) scale(' + scale + ')';
+        if (gerberContainer) {
+          gerberContainer.style.transform = 'translate(' + panX + 'px, ' + panY + 'px) scale(' + scale + ')';
         }
       }
 
@@ -325,7 +399,6 @@
 
         if (galleryIndex === viewerIndex) {
           window.gerberShowSide('top');
-          gerberLoaded = true;
         }
       }
     }());
