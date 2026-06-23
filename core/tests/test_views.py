@@ -200,24 +200,20 @@ class UnifiedEditUITests(TestCase):
         self.assertIn(self._edit_url(), resp.url)
         self.assertIn('#photos', resp.url)
 
-    def test_photo_delete_redirects_to_edit(self):
+    def test_photos_delete_selected_redirects_to_edit(self):
         self.client.force_login(self.owner)
-        photo = ProjectPhoto.objects.create(
-            project=self.project,
-            photo=_png(),
-        )
+        p1 = ProjectPhoto.objects.create(project=self.project, photo=_png())
+        p2 = ProjectPhoto.objects.create(project=self.project, photo=_png('b.png'))
         url = reverse(
-            'photo_delete',
-            kwargs={
-                'uuid': self.project.uuid,
-                'slug': self.project.slug,
-                'photo_id': photo.pk,
-            },
+            'photos_delete_selected',
+            kwargs={'uuid': self.project.uuid, 'slug': self.project.slug},
         )
-        resp = self.client.post(url)
+        resp = self.client.post(url, {'photo_ids': [p1.pk]})
         self.assertEqual(resp.status_code, 302)
         self.assertIn(self._edit_url(), resp.url)
         self.assertIn('#photos', resp.url)
+        self.assertEqual(self.project.photos.count(), 1)
+        self.assertTrue(self.project.photos.filter(pk=p2.pk).exists())
 
     def test_photo_set_featured_redirects_to_edit(self):
         self.client.force_login(self.owner)
@@ -250,27 +246,32 @@ class UnifiedEditUITests(TestCase):
         self.assertIn(self._edit_url(), resp.url)
         self.assertIn('#files', resp.url)
 
-    def test_file_delete_redirects_to_edit(self):
+    def test_files_delete_selected_redirects_to_edit(self):
         self.client.force_login(self.owner)
-        pf = ProjectFile.objects.create(
+        pf1 = ProjectFile.objects.create(
             project=self.project,
             file=SimpleUploadedFile('board.zip', b'zip bytes'),
             original_filename='board.zip',
             file_size=100,
             file_type='Other',
         )
-        url = reverse(
-            'file_delete',
-            kwargs={
-                'uuid': self.project.uuid,
-                'slug': self.project.slug,
-                'file_id': pf.pk,
-            },
+        pf2 = ProjectFile.objects.create(
+            project=self.project,
+            file=SimpleUploadedFile('schem.zip', b'zip bytes'),
+            original_filename='schem.zip',
+            file_size=100,
+            file_type='Other',
         )
-        resp = self.client.post(url)
+        url = reverse(
+            'files_delete_selected',
+            kwargs={'uuid': self.project.uuid, 'slug': self.project.slug},
+        )
+        resp = self.client.post(url, {'file_ids': [pf1.pk]})
         self.assertEqual(resp.status_code, 302)
         self.assertIn(self._edit_url(), resp.url)
         self.assertIn('#files', resp.url)
+        self.assertEqual(self.project.files.count(), 1)
+        self.assertTrue(self.project.files.filter(pk=pf2.pk).exists())
 
     def test_detail_page_no_management_ui(self):
         self.client.force_login(self.owner)
@@ -285,8 +286,38 @@ class UnifiedEditUITests(TestCase):
         content = resp.content.decode()
         self.assertNotIn('photo_upload', content)
         self.assertNotIn('file_upload', content)
-        self.assertNotIn('file_delete', content)
+        self.assertNotIn('files_delete_selected', content)
         self.assertNotIn('Manage photos', content)
+
+    def test_files_delete_selected_non_owner_blocked(self):
+        other = User.objects.create_user('other', password='pw')
+        pf = ProjectFile.objects.create(
+            project=self.project,
+            file=SimpleUploadedFile('board.zip', b'zip bytes'),
+            original_filename='board.zip',
+            file_size=100,
+            file_type='Other',
+        )
+        self.client.force_login(other)
+        url = reverse(
+            'files_delete_selected',
+            kwargs={'uuid': self.project.uuid, 'slug': self.project.slug},
+        )
+        resp = self.client.post(url, {'file_ids': [pf.pk]})
+        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(self.project.files.count(), 1)
+
+    def test_photos_delete_selected_non_owner_blocked(self):
+        other = User.objects.create_user('other', password='pw')
+        photo = ProjectPhoto.objects.create(project=self.project, photo=_png())
+        self.client.force_login(other)
+        url = reverse(
+            'photos_delete_selected',
+            kwargs={'uuid': self.project.uuid, 'slug': self.project.slug},
+        )
+        resp = self.client.post(url, {'photo_ids': [photo.pk]})
+        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(self.project.photos.count(), 1)
 
     def test_create_page_no_file_photo_sections(self):
         self.client.force_login(self.owner)
