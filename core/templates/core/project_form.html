@@ -250,6 +250,21 @@
       enableOnFileSelect('photo-upload-input', 'photo-upload-btn');
       enableOnFileSelect('file-upload-input', 'file-upload-btn');
 
+      function addUploadLoading(inputId, buttonId) {
+        var input = document.getElementById(inputId);
+        var button = document.getElementById(buttonId);
+        if (!input || !button) return;
+        var form = button.closest('form');
+        if (!form) return;
+        form.addEventListener('submit', function () {
+          button.disabled = true;
+          input.disabled = true;
+          button.innerHTML = '<svg class="animate-spin h-4 w-4 inline-block mr-1.5 align-text-bottom" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>Uploading…';
+        });
+      }
+      addUploadLoading('photo-upload-input', 'photo-upload-btn');
+      addUploadLoading('file-upload-input', 'file-upload-btn');
+
       var checkbox = document.getElementById('{{ form.is_public.id_for_label }}');
       var warning = document.getElementById('visibility-warning');
       if (checkbox && warning) {
