@@ -122,62 +122,56 @@
   <div id="files" class="bg-white dark:bg-gray-900 chamfer-lg ds-outline overflow-hidden mb-8">
 
     {% with files=project.files.all %}
-    <div class="px-6 py-4 flex items-center justify-between">
-      <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Project Files</h2>
-      {% if files %}
-      <form method="post" action="{% url 'files_delete_all' project.uuid project.slug %}"
-            onsubmit="return confirm('Remove all {{ files|length }} file{{ files|length|pluralize }}?');">
-        {% csrf_token %}
-        <button type="submit"
-                class="text-xs font-medium text-red-500 hover:text-red-400 transition-colors">
-          Remove all
+    <form id="files-select-form" method="post" action="{% url 'files_delete_selected' project.uuid project.slug %}"
+          onsubmit="return confirm('Delete selected files?');">
+      {% csrf_token %}
+      <div class="px-6 py-4 flex items-center justify-between">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Project Files</h2>
+        {% if files %}
+        <button type="submit" id="files-delete-btn" disabled
+                class="text-xs font-medium px-3 py-1.5 text-red-500 hover:bg-red-600 hover:text-white disabled:text-gray-300 dark:disabled:text-gray-600 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors chamfer-sm">
+          Delete selected
         </button>
-      </form>
-      {% endif %}
-    </div>
+        {% endif %}
+      </div>
 
-    {% if files %}
-    <ul class="divide-y divide-gray-100 dark:divide-gray-800 border-t border-gray-100 dark:border-gray-800">
-      {% for file in files %}
-      <li class="flex items-center gap-3 px-6 py-3">
+      {% if files %}
+      <ul class="divide-y divide-gray-100 dark:divide-gray-800 border-t border-gray-100 dark:border-gray-800">
+        {% for file in files %}
+        <li class="flex items-center gap-3 px-6 py-3">
 
-        <svg class="w-8 h-8 flex-shrink-0 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-        </svg>
+          <input type="checkbox" name="file_ids" value="{{ file.id }}"
+                 class="file-select-cb w-4 h-4 accent-brand-600 flex-shrink-0">
 
-        <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{{ file.original_filename }}</p>
-          <div class="flex items-center gap-2 mt-0.5">
-            <span class="text-xs font-medium px-1.5 py-0.5 chamfer-sm
-              {% if file.file_type == 'Gerber' %}bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-400 ds-outline-brand
-              {% elif file.file_type == 'KiCad' %}bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400
-              {% elif file.file_type == 'BOM' %}bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400
-              {% elif file.file_type == 'Schematic' %}bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-400
-              {% else %}bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400{% endif %}">
-              {{ file.file_type }}
-            </span>
-            <span class="text-xs text-gray-400 dark:text-gray-500">{{ file.file_size|filesizeformat }}</span>
+          <svg class="w-8 h-8 flex-shrink-0 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{{ file.original_filename }}</p>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-xs font-medium px-1.5 py-0.5 chamfer-sm
+                {% if file.file_type == 'Gerber' %}bg-brand-50 dark:bg-brand-900 text-brand-700 dark:text-brand-400 ds-outline-brand
+                {% elif file.file_type == 'KiCad' %}bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400
+                {% elif file.file_type == 'BOM' %}bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400
+                {% elif file.file_type == 'Schematic' %}bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-400
+                {% else %}bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400{% endif %}">
+                {{ file.file_type }}
+              </span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">{{ file.file_size|filesizeformat }}</span>
+            </div>
           </div>
-        </div>
 
-        <form method="post" action="{% url 'file_delete' project.uuid project.slug file.id %}"
-              onsubmit="return confirm('Delete this file?');">
-          {% csrf_token %}
-          <button type="submit"
-                  class="flex-shrink-0 flex items-center justify-center w-7 h-7 text-xs font-bold text-gray-400 hover:bg-red-600 hover:text-white transition-colors chamfer-sm ds-outline">
-            &times;
-          </button>
-        </form>
-
-      </li>
-      {% endfor %}
-    </ul>
-    {% else %}
-    <div class="px-6 py-8 text-center text-sm text-gray-400 dark:text-gray-600 border-t border-gray-100 dark:border-gray-800">
-      No files uploaded yet.
-    </div>
-    {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="px-6 py-8 text-center text-sm text-gray-400 dark:text-gray-600 border-t border-gray-100 dark:border-gray-800">
+        No files uploaded yet.
+      </div>
+      {% endif %}
+    </form>
 
     <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800">
       <form method="post" action="{% url 'file_upload' project.uuid project.slug %}" enctype="multipart/form-data" class="space-y-2"
@@ -199,39 +193,48 @@
 
   <!-- ── Photos ───────────────────────────────────────────────────── -->
   <div id="photos" class="bg-white dark:bg-gray-900 p-6 chamfer-lg ds-outline mb-8">
-    <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">Photos</h2>
 
     {% with photos=project.photos.all %}
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Photos</h2>
+      {% if photos %}
+      <button type="submit" form="photos-select-form" id="photos-delete-btn" disabled
+              class="text-xs font-medium px-3 py-1.5 text-red-500 hover:bg-red-600 hover:text-white disabled:text-gray-300 dark:disabled:text-gray-600 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors chamfer-sm">
+        Delete selected
+      </button>
+      {% endif %}
+    </div>
+
     {% if photos %}
     <p class="text-xs text-gray-400 dark:text-gray-500 mb-2">Drag to reorder. Changes are saved automatically.</p>
-    <div id="photo-manage-grid" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-4"
-         data-reorder-url="{% url 'photo_reorder' project.uuid project.slug %}">
-      {% for p in photos %}
-      <div class="photo-manage-item relative aspect-square chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 ds-outline cursor-grab active:cursor-grabbing"
-           draggable="true" data-photo-id="{{ p.id }}">
-        <img src="{{ p.photo.url }}" alt="" class="w-full h-full object-contain bg-gray-100 dark:bg-gray-800 pointer-events-none">
-        {% if p.is_featured %}
-        <span class="absolute top-1 left-1 text-[10px] font-semibold px-1.5 py-0.5 bg-brand-600 text-white chamfer-sm">
-          Featured
-        </span>
-        {% else %}
-        <form method="post" action="{% url 'photo_set_featured' project.uuid project.slug p.id %}" class="absolute top-1 left-1">
-          {% csrf_token %}
-          <button type="submit" class="text-[10px] font-semibold px-1.5 py-0.5 bg-black/60 hover:bg-brand-600 text-white chamfer-sm transition-colors">
+    <form id="photos-select-form" method="post" action="{% url 'photos_delete_selected' project.uuid project.slug %}"
+          onsubmit="return confirm('Delete selected photos?');">
+      {% csrf_token %}
+      <div id="photo-manage-grid" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-4"
+           data-reorder-url="{% url 'photo_reorder' project.uuid project.slug %}">
+        {% for p in photos %}
+        <div class="photo-manage-item relative aspect-square chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 ds-outline cursor-grab active:cursor-grabbing"
+             draggable="true" data-photo-id="{{ p.id }}">
+          <img src="{{ p.photo.url }}" alt="" class="w-full h-full object-contain bg-gray-100 dark:bg-gray-800 pointer-events-none">
+          <input type="checkbox" name="photo_ids" value="{{ p.id }}"
+                 class="photo-select-cb absolute top-1 right-1 w-4 h-4 accent-brand-600 cursor-pointer">
+          {% if p.is_featured %}
+          <span class="absolute top-1 left-1 text-[10px] font-semibold px-1.5 py-0.5 bg-brand-600 text-white chamfer-sm">
+            Featured
+          </span>
+          {% else %}
+          <button type="button" onclick="this.nextElementSibling.submit()"
+                  class="absolute top-1 left-1 text-[10px] font-semibold px-1.5 py-0.5 bg-black/60 hover:bg-brand-600 text-white chamfer-sm transition-colors">
             Set featured
           </button>
-        </form>
-        {% endif %}
-        <form method="post" action="{% url 'photo_delete' project.uuid project.slug p.id %}" class="absolute top-1 right-1"
-              onsubmit="return confirm('Delete this photo?');">
-          {% csrf_token %}
-          <button type="submit" class="w-5 h-5 flex items-center justify-center text-xs font-bold bg-black/60 hover:bg-red-600 text-white chamfer-sm transition-colors">
-            &times;
-          </button>
-        </form>
+          <form method="post" action="{% url 'photo_set_featured' project.uuid project.slug p.id %}" class="hidden">
+            {% csrf_token %}
+          </form>
+          {% endif %}
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
+    </form>
     {% else %}
     <p class="text-sm text-gray-400 dark:text-gray-600 mb-4">No photos yet. The first photo you upload becomes the gallery cover and card thumbnail.</p>
     {% endif %}
@@ -413,6 +416,19 @@
           }
         });
       }
+
+      function wireCheckboxes(cbClass, btnId) {
+        var btn = document.getElementById(btnId);
+        if (!btn) return;
+        var cbs = document.querySelectorAll('.' + cbClass);
+        function update() {
+          var anyChecked = Array.prototype.some.call(cbs, function (cb) { return cb.checked; });
+          btn.disabled = !anyChecked;
+        }
+        cbs.forEach(function (cb) { cb.addEventListener('change', update); });
+      }
+      wireCheckboxes('file-select-cb', 'files-delete-btn');
+      wireCheckboxes('photo-select-cb', 'photos-delete-btn');
 
       var checkbox = document.getElementById('{{ form.is_public.id_for_label }}');
       var warning = document.getElementById('visibility-warning');

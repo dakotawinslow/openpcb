@@ -23,9 +23,9 @@ urlpatterns = [
         'projects/<uuid:uuid>/<slug:slug>/photos/upload/', views.photo_upload, name='photo_upload'
     ),
     path(
-        'projects/<uuid:uuid>/<slug:slug>/photos/<int:photo_id>/delete/',
-        views.photo_delete,
-        name='photo_delete',
+        'projects/<uuid:uuid>/<slug:slug>/photos/delete/',
+        views.photos_delete_selected,
+        name='photos_delete_selected',
     ),
     path(
         'projects/<uuid:uuid>/<slug:slug>/photos/<int:photo_id>/feature/',
@@ -39,14 +39,14 @@ urlpatterns = [
     ),
     path('projects/<uuid:uuid>/<slug:slug>/files/upload/', views.file_upload, name='file_upload'),
     path(
+        'projects/<uuid:uuid>/<slug:slug>/files/delete/',
+        views.files_delete_selected,
+        name='files_delete_selected',
+    ),
+    path(
         'projects/<uuid:uuid>/<slug:slug>/files/delete-all/',
         views.files_delete_all,
         name='files_delete_all',
-    ),
-    path(
-        'projects/<uuid:uuid>/<slug:slug>/files/<int:file_id>/delete/',
-        views.file_delete,
-        name='file_delete',
     ),
     path(
         'projects/<uuid:uuid>/<slug:slug>/files/<int:file_id>/download/',

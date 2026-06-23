@@ -263,11 +263,13 @@ def photo_upload(request, uuid, slug):
 
 
 @login_required
-def photo_delete(request, uuid, slug, photo_id):
+def photos_delete_selected(request, uuid, slug):
     project = _get_owned_project(request, uuid)
-    photo = get_object_or_404(ProjectPhoto, pk=photo_id, project=project)
     if request.method == 'POST':
-        photo.delete()
+        photo_ids = request.POST.getlist('photo_ids')
+        photos = project.photos.filter(pk__in=photo_ids)
+        for photo in photos:
+            photo.delete()
     return _redirect_to_edit(project, 'photos')
 
 
@@ -333,11 +335,18 @@ def file_upload(request, uuid, slug):
 
 
 @login_required
-def file_delete(request, uuid, slug, file_id):
+def files_delete_selected(request, uuid, slug):
     project = _get_owned_project(request, uuid)
-    project_file = get_object_or_404(ProjectFile, pk=file_id, project=project)
     if request.method == 'POST':
-        project_file.delete()
+        file_ids = request.POST.getlist('file_ids')
+        files = list(project.files.filter(pk__in=file_ids))
+        for f in files:
+            f.file.delete(save=False)
+            f.delete()
+        if files:
+            from .models import _regenerate_board_preview
+
+            _regenerate_board_preview(project)
     return _redirect_to_edit(project, 'files')
 
 
