@@ -120,6 +120,60 @@ class FileUploadPermissionTests(TestCase):
         self.assertEqual(self.project.files.count(), 1)
 
 
+class FileDuplicateTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner', password='pw')
+        self.project = Project.objects.create(owner=self.owner, title='Widget')
+        self.client.force_login(self.owner)
+        self.existing = ProjectFile.objects.create(
+            project=self.project,
+            file=SimpleUploadedFile('design.zip', b'old data'),
+            original_filename='design.zip',
+            file_size=8,
+        )
+
+    def _upload_url(self):
+        return reverse('file_upload', kwargs={'uuid': self.project.uuid, 'slug': self.project.slug})
+
+    def test_duplicate_without_replace_is_skipped(self):
+        f = SimpleUploadedFile('design.zip', b'new data')
+        self.client.post(self._upload_url(), {'files': [f]})
+        self.assertEqual(self.project.files.count(), 1)
+        self.assertEqual(self.project.files.first().file_size, 8)
+
+    def test_duplicate_with_replace_replaces_file(self):
+        f = SimpleUploadedFile('design.zip', b'new data!!')
+        self.client.post(
+            self._upload_url(),
+            {'files': [f], 'replace_filenames': ['design.zip']},
+        )
+        self.assertEqual(self.project.files.count(), 1)
+        self.assertEqual(self.project.files.first().file_size, 10)
+
+    def test_new_file_uploaded_alongside_skipped_duplicate(self):
+        f_dup = SimpleUploadedFile('design.zip', b'new data')
+        f_new = SimpleUploadedFile('schematic.zip', b'other')
+        self.client.post(self._upload_url(), {'files': [f_dup, f_new]})
+        self.assertEqual(self.project.files.count(), 2)
+        names = set(self.project.files.values_list('original_filename', flat=True))
+        self.assertEqual(names, {'design.zip', 'schematic.zip'})
+
+    def test_replace_all_replaces_all_duplicates(self):
+        ProjectFile.objects.create(
+            project=self.project,
+            file=SimpleUploadedFile('board.gbr', b'old gbr'),
+            original_filename='board.gbr',
+            file_size=7,
+        )
+        f1 = SimpleUploadedFile('design.zip', b'new zip')
+        f2 = SimpleUploadedFile('board.gbr', b'new gbr')
+        self.client.post(
+            self._upload_url(),
+            {'files': [f1, f2], 'replace_filenames': ['design.zip', 'board.gbr']},
+        )
+        self.assertEqual(self.project.files.count(), 2)
+
+
 class FilesDeleteAllTests(TestCase):
     def setUp(self):
         self.owner = User.objects.create_user('owner', password='pw')

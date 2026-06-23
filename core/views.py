@@ -300,11 +300,25 @@ def file_upload(request, uuid, slug):
     project = _get_owned_project(request, uuid)
     if request.method == 'POST':
         files = request.FILES.getlist('files')
+        replace_names = set(request.POST.getlist('replace_filenames'))
+        existing_names = set(project.files.values_list('original_filename', flat=True))
+
+        new_files = []
+        for f in files:
+            if f.name in existing_names:
+                if f.name not in replace_names:
+                    continue
+                old = project.files.filter(original_filename=f.name)
+                for old_file in old:
+                    old_file.file.delete(save=False)
+                old.delete()
+            new_files.append(f)
+
         current_count = project.files.count()
-        if current_count + len(files) > MAX_FILES_PER_PROJECT:
+        if current_count + len(new_files) > MAX_FILES_PER_PROJECT:
             messages.error(request, f'A project can have at most {MAX_FILES_PER_PROJECT} files.')
         else:
-            for f in files:
+            for f in new_files:
                 form = ProjectFileForm(files={'file': f})
                 if form.is_valid():
                     project_file = form.save(commit=False)
