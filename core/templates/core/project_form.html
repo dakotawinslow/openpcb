@@ -178,10 +178,11 @@
       No files uploaded yet.
     </div>
     {% endif %}
-    {% endwith %}
 
     <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800">
-      <form method="post" action="{% url 'file_upload' project.uuid project.slug %}" enctype="multipart/form-data" class="space-y-2">
+      <form method="post" action="{% url 'file_upload' project.uuid project.slug %}" enctype="multipart/form-data" class="space-y-2"
+            id="file-upload-form"
+            data-existing-filenames="{% for file in files %}{{ file.original_filename }}{% if not forloop.last %}||{% endif %}{% endfor %}">
         {% csrf_token %}
         <input type="file" name="files" id="file-upload-input" multiple
                class="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-3 file:px-3 file:py-1.5 file:chamfer-sm file:border-0 file:bg-brand-50 dark:file:bg-brand-900 file:text-brand-700 dark:file:text-brand-400 file:text-sm file:font-medium file:cursor-pointer">
@@ -192,6 +193,7 @@
       </form>
       <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">Gerbers, KiCad/Eagle projects, BOM, schematics, etc. Up to 100MB each.</p>
     </div>
+    {% endwith %}
 
   </div>
 
@@ -247,6 +249,32 @@
     <p class="mt-2 text-xs text-gray-400 dark:text-gray-500">JPG, PNG, WEBP or GIF, up to 20MB each.</p>
   </div>
 
+  <!-- ── Duplicate file conflict modal ──────────────────────────── -->
+  <div id="file-conflict-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" id="file-conflict-backdrop"></div>
+    <div class="relative bg-white dark:bg-gray-900 chamfer-lg ds-outline max-w-md w-full mx-4 overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+        <h3 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Duplicate Files</h3>
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">The following files already exist in this project. Choose which to replace.</p>
+      </div>
+      <ul id="file-conflict-list" class="divide-y divide-gray-100 dark:divide-gray-800 max-h-64 overflow-y-auto"></ul>
+      <div class="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex flex-wrap gap-2">
+        <button id="file-conflict-replace-all"
+                class="px-4 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold chamfer transition-colors">
+          Replace all
+        </button>
+        <button id="file-conflict-skip-all"
+                class="px-4 py-1.5 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-semibold chamfer transition-colors">
+          Skip all duplicates
+        </button>
+        <button id="file-conflict-cancel"
+                class="px-4 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors ml-auto">
+          Cancel upload
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       function enableOnFileSelect(inputId, buttonId) {
@@ -272,7 +300,119 @@
         });
       }
       addUploadLoading('photo-upload-input', 'photo-upload-btn');
-      addUploadLoading('file-upload-input', 'file-upload-btn');
+
+      var fileForm = document.getElementById('file-upload-form');
+      var fileInput = document.getElementById('file-upload-input');
+      var fileBtn = document.getElementById('file-upload-btn');
+      var modal = document.getElementById('file-conflict-modal');
+
+      if (fileForm && fileInput && fileBtn && modal) {
+        var rawExisting = fileForm.dataset.existingFilenames || '';
+        var existingNames = rawExisting ? rawExisting.split('||') : [];
+        var skipConflictCheck = false;
+
+        function showLoading() {
+          fileBtn.disabled = true;
+          fileBtn.innerHTML = '<svg class="animate-spin h-4 w-4 inline-block mr-1.5 align-text-bottom" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>Uploading…';
+        }
+
+        function submitWithReplacements(replaceNames) {
+          fileForm.querySelectorAll('input[name="replace_filenames"]').forEach(function (el) { el.remove(); });
+          replaceNames.forEach(function (name) {
+            var hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'replace_filenames';
+            hidden.value = name;
+            fileForm.appendChild(hidden);
+          });
+          skipConflictCheck = true;
+          showLoading();
+          fileForm.submit();
+        }
+
+        function showConflictModal(conflicts) {
+          var list = document.getElementById('file-conflict-list');
+          list.innerHTML = '';
+          conflicts.forEach(function (name) {
+            var li = document.createElement('li');
+            li.className = 'flex items-center justify-between px-6 py-3';
+            li.dataset.filename = name;
+            li.innerHTML =
+              '<span class="text-sm text-gray-800 dark:text-gray-200 truncate mr-3">' + name.replace(/</g, '&lt;') + '</span>' +
+              '<div class="flex gap-2 flex-shrink-0">' +
+                '<button type="button" data-action="replace" class="px-3 py-1 text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white chamfer-sm transition-colors">Replace</button>' +
+                '<button type="button" data-action="skip" class="px-3 py-1 text-xs font-semibold bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 chamfer-sm transition-colors">Skip</button>' +
+              '</div>';
+            list.appendChild(li);
+          });
+          updateItemStates();
+          modal.classList.remove('hidden');
+        }
+
+        function updateItemStates() {
+          var items = modal.querySelectorAll('#file-conflict-list li');
+          items.forEach(function (li) {
+            var replaceBtn = li.querySelector('[data-action="replace"]');
+            var skipBtn = li.querySelector('[data-action="skip"]');
+            var isMarkedReplace = li.dataset.replace === 'true';
+            replaceBtn.classList.toggle('opacity-40', isMarkedReplace);
+            skipBtn.classList.toggle('opacity-40', !isMarkedReplace);
+          });
+        }
+
+        modal.querySelector('#file-conflict-list').addEventListener('click', function (e) {
+          var btn = e.target.closest('[data-action]');
+          if (!btn) return;
+          var li = btn.closest('li');
+          li.dataset.replace = btn.dataset.action === 'replace' ? 'true' : 'false';
+          updateItemStates();
+        });
+
+        document.getElementById('file-conflict-replace-all').addEventListener('click', function () {
+          modal.querySelectorAll('#file-conflict-list li').forEach(function (li) { li.dataset.replace = 'true'; });
+          var replaceNames = [];
+          modal.querySelectorAll('#file-conflict-list li').forEach(function (li) {
+            replaceNames.push(li.dataset.filename);
+          });
+          modal.classList.add('hidden');
+          submitWithReplacements(replaceNames);
+        });
+
+        document.getElementById('file-conflict-skip-all').addEventListener('click', function () {
+          modal.classList.add('hidden');
+          submitWithReplacements([]);
+        });
+
+        document.getElementById('file-conflict-cancel').addEventListener('click', function () {
+          modal.classList.add('hidden');
+        });
+
+        document.getElementById('file-conflict-backdrop').addEventListener('click', function () {
+          modal.classList.add('hidden');
+        });
+
+        fileForm.addEventListener('submit', function (e) {
+          if (skipConflictCheck) {
+            skipConflictCheck = false;
+            return;
+          }
+
+          var selected = Array.prototype.slice.call(fileInput.files);
+          var conflicts = [];
+          selected.forEach(function (f) {
+            if (existingNames.indexOf(f.name) !== -1) {
+              conflicts.push(f.name);
+            }
+          });
+
+          if (conflicts.length > 0) {
+            e.preventDefault();
+            showConflictModal(conflicts);
+          } else {
+            showLoading();
+          }
+        });
+      }
 
       var checkbox = document.getElementById('{{ form.is_public.id_for_label }}');
       var warning = document.getElementById('visibility-warning');
