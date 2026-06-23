@@ -344,6 +344,17 @@ to `window`; declarations inside an IIFE are not visible in global scope.
 - CI (`.github/workflows/ci.yml`) runs `scripts/check.sh` against a Postgres
   service container on every push/PR to `main`.
 
+### Branching policy
+
+- **Default working branch is `dev`.** When not on a feature-specific branch,
+  all work happens on `dev`. Never commit directly to `main`.
+- **Feature branches** branch off `dev` and merge back into `dev` via PR.
+- **`dev` → `main` merges only on explicit request.** Do not merge `dev` into
+  `main` unless the user specifically asks for it. `main` is the production
+  branch — only tested, approved work lands there.
+- If the current branch is `main` and the task is not a `dev` → `main` merge,
+  switch to `dev` (or a feature branch off `dev`) before making changes.
+
 ---
 
 ## What Good Looks Like (Definition of Done for Alpha Hardening)
