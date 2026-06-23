@@ -417,6 +417,8 @@
         });
       }
 
+      var spinnerSvg = '<svg class="animate-spin h-4 w-4 text-gray-400 dark:text-gray-500" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"></circle><path fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>';
+
       function wireCheckboxes(cbClass, btnId) {
         var btn = document.getElementById(btnId);
         if (!btn) return;
@@ -429,6 +431,29 @@
       }
       wireCheckboxes('file-select-cb', 'files-delete-btn');
       wireCheckboxes('photo-select-cb', 'photos-delete-btn');
+
+      function wireDeleteLoading(formId, cbClass, btnId) {
+        var form = document.getElementById(formId);
+        if (!form) return;
+        form.addEventListener('submit', function () {
+          var btn = document.getElementById(btnId);
+          if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = spinnerSvg + ' Deleting…';
+            btn.classList.add('flex', 'items-center', 'gap-1.5');
+          }
+          form.querySelectorAll('.' + cbClass).forEach(function (cb) {
+            if (!cb.checked) return;
+            var item = cb.closest('li') || cb.closest('.photo-manage-item');
+            if (!item) return;
+            item.classList.add('opacity-40', 'pointer-events-none');
+            cb.style.display = 'none';
+            cb.insertAdjacentHTML('afterend', spinnerSvg);
+          });
+        });
+      }
+      wireDeleteLoading('files-select-form', 'file-select-cb', 'files-delete-btn');
+      wireDeleteLoading('photos-select-form', 'photo-select-cb', 'photos-delete-btn');
 
       var checkbox = document.getElementById('{{ form.is_public.id_for_label }}');
       var warning = document.getElementById('visibility-warning');
