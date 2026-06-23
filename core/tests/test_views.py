@@ -120,6 +120,49 @@ class FileUploadPermissionTests(TestCase):
         self.assertEqual(self.project.files.count(), 1)
 
 
+class FilesDeleteAllTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner', password='pw')
+        self.other = User.objects.create_user('other', password='pw')
+        self.project = Project.objects.create(owner=self.owner, title='Widget')
+        ProjectFile.objects.create(
+            project=self.project,
+            file=SimpleUploadedFile('a.zip', b'data'),
+            original_filename='a.zip',
+            file_size=4,
+        )
+        ProjectFile.objects.create(
+            project=self.project,
+            file=SimpleUploadedFile('b.zip', b'data'),
+            original_filename='b.zip',
+            file_size=4,
+        )
+
+    def _url(self):
+        return reverse(
+            'files_delete_all',
+            kwargs={'uuid': self.project.uuid, 'slug': self.project.slug},
+        )
+
+    def test_owner_can_delete_all_files(self):
+        self.client.force_login(self.owner)
+        resp = self.client.post(self._url())
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(self.project.files.count(), 0)
+
+    def test_non_owner_cannot_delete_all(self):
+        self.client.force_login(self.other)
+        resp = self.client.post(self._url())
+        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(self.project.files.count(), 2)
+
+    def test_anon_redirected_to_login(self):
+        resp = self.client.post(self._url())
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn('/accounts/login/', resp.url)
+        self.assertEqual(self.project.files.count(), 2)
+
+
 class ExploreViewTests(TestCase):
     def setUp(self):
         owner = User.objects.create_user('owner', password='pw')

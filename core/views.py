@@ -327,6 +327,14 @@ def file_delete(request, uuid, slug, file_id):
     return _redirect_to_edit(project, 'files')
 
 
+@login_required
+def files_delete_all(request, uuid, slug):
+    project = _get_owned_project(request, uuid)
+    if request.method == 'POST':
+        project.files.all().delete()
+    return _redirect_to_edit(project, 'files')
+
+
 def file_download(request, uuid, slug, file_id):
     project = get_object_or_404(Project, uuid=uuid)
     if not project.is_public and project.owner != request.user:

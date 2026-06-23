@@ -39,6 +39,11 @@ urlpatterns = [
     ),
     path('projects/<uuid:uuid>/<slug:slug>/files/upload/', views.file_upload, name='file_upload'),
     path(
+        'projects/<uuid:uuid>/<slug:slug>/files/delete-all/',
+        views.files_delete_all,
+        name='files_delete_all',
+    ),
+    path(
         'projects/<uuid:uuid>/<slug:slug>/files/<int:file_id>/delete/',
         views.file_delete,
         name='file_delete',

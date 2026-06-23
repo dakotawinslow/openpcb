@@ -121,11 +121,21 @@
   <!-- ── Project Files ────────────────────────────────────────────── -->
   <div id="files" class="bg-white dark:bg-gray-900 chamfer-lg ds-outline overflow-hidden mb-8">
 
-    <div class="px-6 py-4">
+    {% with files=project.files.all %}
+    <div class="px-6 py-4 flex items-center justify-between">
       <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Project Files</h2>
+      {% if files %}
+      <form method="post" action="{% url 'files_delete_all' project.uuid project.slug %}"
+            onsubmit="return confirm('Remove all {{ files|length }} file{{ files|length|pluralize }}?');">
+        {% csrf_token %}
+        <button type="submit"
+                class="text-xs font-medium text-red-500 hover:text-red-400 transition-colors">
+          Remove all
+        </button>
+      </form>
+      {% endif %}
     </div>
 
-    {% with files=project.files.all %}
     {% if files %}
     <ul class="divide-y divide-gray-100 dark:divide-gray-800 border-t border-gray-100 dark:border-gray-800">
       {% for file in files %}
