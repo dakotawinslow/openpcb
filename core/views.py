@@ -331,7 +331,13 @@ def file_delete(request, uuid, slug, file_id):
 def files_delete_all(request, uuid, slug):
     project = _get_owned_project(request, uuid)
     if request.method == 'POST':
-        project.files.all().delete()
+        files = list(project.files.all())
+        for f in files:
+            f.file.delete(save=False)
+        project.files.all()._raw_delete(project.files.all().db)
+        from .models import _regenerate_board_preview
+
+        _regenerate_board_preview(project)
     return _redirect_to_edit(project, 'files')
 
 
