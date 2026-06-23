@@ -199,7 +199,7 @@
       var galleryIndex = {% if not photos and project.board_preview_top %}viewerIndex{% else %}0{% endif %};
 
       var photoUrls = [
-        {% for p in photos %}'{{ p.photo.url }}'{% if not forloop.last %},{% endif %}{% endfor %}
+        {% for p in photos %}'{{ p.photo.url|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}
       ];
 
       var galleryMain = document.getElementById('gallery-main');
