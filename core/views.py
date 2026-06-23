@@ -263,11 +263,13 @@ def photo_upload(request, uuid, slug):
 
 
 @login_required
-def photo_delete(request, uuid, slug, photo_id):
+def photos_delete_selected(request, uuid, slug):
     project = _get_owned_project(request, uuid)
-    photo = get_object_or_404(ProjectPhoto, pk=photo_id, project=project)
     if request.method == 'POST':
-        photo.delete()
+        photo_ids = request.POST.getlist('photo_ids')
+        photos = project.photos.filter(pk__in=photo_ids)
+        for photo in photos:
+            photo.delete()
     return _redirect_to_edit(project, 'photos')
 
 
@@ -300,11 +302,25 @@ def file_upload(request, uuid, slug):
     project = _get_owned_project(request, uuid)
     if request.method == 'POST':
         files = request.FILES.getlist('files')
+        replace_names = set(request.POST.getlist('replace_filenames'))
+        existing_names = set(project.files.values_list('original_filename', flat=True))
+
+        new_files = []
+        for f in files:
+            if f.name in existing_names:
+                if f.name not in replace_names:
+                    continue
+                old = project.files.filter(original_filename=f.name)
+                for old_file in old:
+                    old_file.file.delete(save=False)
+                old.delete()
+            new_files.append(f)
+
         current_count = project.files.count()
-        if current_count + len(files) > MAX_FILES_PER_PROJECT:
+        if current_count + len(new_files) > MAX_FILES_PER_PROJECT:
             messages.error(request, f'A project can have at most {MAX_FILES_PER_PROJECT} files.')
         else:
-            for f in files:
+            for f in new_files:
                 form = ProjectFileForm(files={'file': f})
                 if form.is_valid():
                     project_file = form.save(commit=False)
@@ -319,11 +335,32 @@ def file_upload(request, uuid, slug):
 
 
 @login_required
-def file_delete(request, uuid, slug, file_id):
+def files_delete_selected(request, uuid, slug):
     project = _get_owned_project(request, uuid)
-    project_file = get_object_or_404(ProjectFile, pk=file_id, project=project)
     if request.method == 'POST':
-        project_file.delete()
+        file_ids = request.POST.getlist('file_ids')
+        files = list(project.files.filter(pk__in=file_ids))
+        for f in files:
+            f.file.delete(save=False)
+            f.delete()
+        if files:
+            from .models import _regenerate_board_preview
+
+            _regenerate_board_preview(project)
+    return _redirect_to_edit(project, 'files')
+
+
+@login_required
+def files_delete_all(request, uuid, slug):
+    project = _get_owned_project(request, uuid)
+    if request.method == 'POST':
+        files = list(project.files.all())
+        for f in files:
+            f.file.delete(save=False)
+        project.files.all()._raw_delete(project.files.all().db)
+        from .models import _regenerate_board_preview
+
+        _regenerate_board_preview(project)
     return _redirect_to_edit(project, 'files')
 
 

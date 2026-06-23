@@ -2,52 +2,57 @@ import os
 
 # ── Design files ───────────────────────────────────────────────────────────
 
-ALLOWED_FILE_EXTENSIONS = {
-    '.zip',
-    '.gbr',
-    '.gtl',
-    '.gbl',
-    '.gts',
-    '.gbs',
-    '.gto',
-    '.gbo',
-    '.gtp',
-    '.gbp',
-    '.drl',
-    '.xln',
-    '.kicad_pcb',
-    '.kicad_sch',
-    '.kicad_pro',
-    '.brd',
-    '.sch',  # Eagle
-    '.pdf',
-    '.csv',
-    '.txt',
-    '.md',
+BLOCKED_FILE_EXTENSIONS = {
+    '.bat',
+    '.cmd',
+    '.com',
+    '.dll',
+    '.exe',
+    '.js',
+    '.msi',
+    '.ps1',
+    '.py',
+    '.sh',
+    '.so',
+    '.vbs',
 }
 
 MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024  # 100MB per file
-MAX_FILES_PER_PROJECT = 20
+MAX_FILES_PER_PROJECT = 30
 
+# fmt: off
 FILE_TYPE_BY_EXTENSION = {
-    '.gbr': 'Gerber',
-    '.gtl': 'Gerber',
-    '.gbl': 'Gerber',
-    '.gts': 'Gerber',
-    '.gbs': 'Gerber',
-    '.gto': 'Gerber',
-    '.gbo': 'Gerber',
-    '.gtp': 'Gerber',
-    '.gbp': 'Gerber',
-    '.drl': 'Gerber',
-    '.xln': 'Gerber',
-    '.kicad_pcb': 'KiCad',
-    '.kicad_sch': 'KiCad',
-    '.kicad_pro': 'KiCad',
-    '.brd': 'Eagle',
-    '.sch': 'Eagle',
-    '.csv': 'BOM',
+    # Gerber — legacy per-layer extensions (Protel/Altium convention)
+    '.gbr': 'Gerber',  '.gtl': 'Gerber',  '.gbl': 'Gerber',
+    '.gts': 'Gerber',  '.gbs': 'Gerber',  '.gto': 'Gerber',
+    '.gbo': 'Gerber',  '.gtp': 'Gerber',  '.gbp': 'Gerber',
+    '.gd1': 'Gerber',  '.gm1': 'Gerber',  '.gko': 'Gerber',
+    '.gpb': 'Gerber',  '.gpt': 'Gerber',  '.g1':  'Gerber',
+    '.g2':  'Gerber',  '.g3':  'Gerber',  '.g4':  'Gerber',
+    '.gp1': 'Gerber',  '.gp2': 'Gerber',
+    # Drill
+    '.drl': 'Drill',   '.xln': 'Drill',   '.exc': 'Drill',
+    # KiCad
+    '.kicad_pcb': 'KiCad', '.kicad_sch': 'KiCad', '.kicad_pro': 'KiCad',
+    '.kicad_mod': 'KiCad', '.kicad_sym': 'KiCad', '.kicad_wks': 'KiCad',
+    # Eagle
+    '.brd': 'Eagle',   '.sch': 'Eagle',
+    # Altium
+    '.pcbdoc': 'Altium', '.schdoc': 'Altium', '.prjpcb': 'Altium',
+    # EasyEDA / LCSC
+    '.json': 'EasyEDA',
+    # Pick-and-place / BOM
+    '.csv': 'BOM',     '.xlsx': 'BOM',     '.xls': 'BOM',
+    # Documentation
+    '.pdf': 'Document', '.txt': 'Document', '.md': 'Document',
+    # Archives
+    '.zip': 'Archive',  '.tar': 'Archive', '.gz': 'Archive',
+    '.7z':  'Archive',  '.rar': 'Archive',
+    # Images / renders
+    '.png': 'Image',    '.jpg': 'Image',   '.jpeg': 'Image',
+    '.svg': 'Image',    '.webp': 'Image',
 }
+# fmt: on
 
 
 GERBER_EXTENSION_TO_LAYER = {
@@ -83,7 +88,7 @@ GERBER_OUTLINE_EXTENSIONS = {'.gm1', '.gko'}
 
 def detect_file_type(filename):
     ext = os.path.splitext(filename)[1].lower()
-    return FILE_TYPE_BY_EXTENSION.get(ext, 'Other')
+    return FILE_TYPE_BY_EXTENSION.get(ext, 'Unknown')
 
 
 # ── Photos ───────────────────────────────────────────────────────────────────

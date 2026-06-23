@@ -54,12 +54,17 @@ class ProjectFormTagsTests(TestCase):
 
 
 class ProjectFileFormTests(TestCase):
-    def test_allowed_extension_is_valid(self):
+    def test_known_extension_is_valid(self):
         f = SimpleUploadedFile('design.zip', b'zip bytes', content_type='application/zip')
         form = ProjectFileForm(files={'file': f})
         self.assertTrue(form.is_valid(), form.errors)
 
-    def test_disallowed_extension_is_rejected(self):
+    def test_unknown_extension_is_allowed(self):
+        f = SimpleUploadedFile('board.gd1', b'gerber bytes')
+        form = ProjectFileForm(files={'file': f})
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_blocked_extension_is_rejected(self):
         f = SimpleUploadedFile('virus.exe', b'bytes', content_type='application/octet-stream')
         form = ProjectFileForm(files={'file': f})
         self.assertFalse(form.is_valid())

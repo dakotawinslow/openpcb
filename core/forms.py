@@ -5,8 +5,8 @@ from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 
 from .constants import (
-    ALLOWED_FILE_EXTENSIONS,
     ALLOWED_IMAGE_EXTENSIONS,
+    BLOCKED_FILE_EXTENSIONS,
     MAX_FILE_SIZE_BYTES,
     MAX_IMAGE_SIZE_BYTES,
 )
@@ -55,8 +55,8 @@ class ProjectFileForm(forms.ModelForm):
     def clean_file(self):
         f = self.cleaned_data['file']
         ext = os.path.splitext(f.name)[1].lower()
-        if ext not in ALLOWED_FILE_EXTENSIONS:
-            raise ValidationError(f'"{ext}" is not an allowed file type.')
+        if ext in BLOCKED_FILE_EXTENSIONS:
+            raise ValidationError(f'"{ext}" files are not allowed.')
         if f.size > MAX_FILE_SIZE_BYTES:
             raise ValidationError('File is too large (max 100MB).')
         return f
