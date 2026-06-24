@@ -15,21 +15,6 @@ from .constants import MAX_FILES_PER_PROJECT, MAX_PHOTOS_PER_PROJECT, detect_fil
 from .forms import ProjectFileForm, ProjectForm, ProjectPhotoForm
 from .models import Profile, Project, ProjectFile, ProjectPhoto, Tag
 
-WHY_ITEMS = [
-    {
-        'title': 'Browse by board, not by branch',
-        'body': 'Every design gets a real page — renders, photos, and specs up front, instead of a folder of files to dig through.',  # noqa: E501
-    },
-    {
-        'title': 'Fab-ready downloads',
-        'body': 'Gerbers, KiCad project, schematic, and BOM bundled together — ready to send straight to a fab.',  # noqa: E501
-    },
-    {
-        'title': 'Open licenses, clearly stated',
-        'body': 'Every design shows its license upfront, not buried in a file somewhere in the repo.',  # noqa: E501
-    },
-]
-
 SORT_OPTIONS = {
     'newest': '-created_at',
     'oldest': 'created_at',
@@ -49,7 +34,6 @@ def index(request):
         'core/index.html',
         {
             'projects': projects,
-            'why_items': WHY_ITEMS,
         },
     )
 

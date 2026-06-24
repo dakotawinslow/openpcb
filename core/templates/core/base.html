@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +10,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -22,7 +24,7 @@
           },
           colors: {
             brand: {
-              50:  '#f2fdf2',  // near-white tint for hover backgrounds
+              50: '#f2fdf2',  // near-white tint for hover backgrounds
               100: '#d5f5d5',  // very light kelly, badge backgrounds
               200: '#a8e8a8',  // light kelly accent
               300: '#6cd46c',  // light interactive elements
@@ -34,7 +36,7 @@
               900: '#062006',  // near-black green — dark mode deep background
             },
             copper: {
-              50:  '#fef4ec',  // near-white copper tint
+              50: '#fef4ec',  // near-white copper tint
               100: '#fde4c8',  // very light copper
               200: '#f9c594',  // light copper
               300: '#f0a050',  // warm copper highlight
@@ -55,36 +57,33 @@
        in sync with the palette automatically. Runs synchronously before <body>
        so vars are defined before first paint. -->
   <script>
-    (function () {
-      function hexToRgb(hex) {
-        return parseInt(hex.slice(1,3),16)+', '+parseInt(hex.slice(3,5),16)+', '+parseInt(hex.slice(5,7),16);
-      }
-      var c = tailwind.config.theme.extend.colors;
-      var s = document.documentElement.style;
-      s.setProperty('--brand-300-rgb',  hexToRgb(c.brand[300]));
-      s.setProperty('--brand-600-rgb',  hexToRgb(c.brand[600]));
-      s.setProperty('--brand-700-rgb',  hexToRgb(c.brand[700]));
-      s.setProperty('--copper-500-rgb', hexToRgb(c.copper[500]));
-      s.setProperty('--copper-600-rgb', hexToRgb(c.copper[600]));
-    }());
+      (function () {
+        function hexToRgb(hex) {
+          return parseInt(hex.slice(1, 3), 16) + ', ' + parseInt(hex.slice(3, 5), 16) + ', ' + parseInt(hex.slice(5, 7), 16);
+        }
+        var c = tailwind.config.theme.extend.colors;
+        var s = document.documentElement.style;
+        s.setProperty('--brand-300-rgb', hexToRgb(c.brand[300]));
+        s.setProperty('--brand-600-rgb', hexToRgb(c.brand[600]));
+        s.setProperty('--brand-700-rgb', hexToRgb(c.brand[700]));
+        s.setProperty('--copper-500-rgb', hexToRgb(c.copper[500]));
+        s.setProperty('--copper-600-rgb', hexToRgb(c.copper[600]));
+      }());
   </script>
 
   <style>
     /* Subtle 45° PCB trace — references brand-600 so it shifts with the palette */
     body {
-      background-image: repeating-linear-gradient(
-        -45deg,
-        transparent 0px, transparent 24px,
-        rgba(var(--brand-600-rgb), 0.045) 24px, rgba(var(--brand-600-rgb), 0.045) 25px
-      );
+      background-image: repeating-linear-gradient(-45deg,
+          transparent 0px, transparent 24px,
+          rgba(var(--brand-600-rgb), 0.045) 24px, rgba(var(--brand-600-rgb), 0.045) 25px);
     }
+
     @media (prefers-color-scheme: dark) {
       body {
-        background-image: repeating-linear-gradient(
-          -45deg,
-          transparent 0px, transparent 24px,
-          rgba(var(--brand-600-rgb), 0.09) 24px, rgba(var(--brand-600-rgb), 0.09) 25px
-        );
+        background-image: repeating-linear-gradient(-45deg,
+            transparent 0px, transparent 24px,
+            rgba(var(--brand-600-rgb), 0.09) 24px, rgba(var(--brand-600-rgb), 0.09) 25px);
       }
     }
 
@@ -92,62 +91,120 @@
        clip-path clips everything including CSS borders, so never use border-*
        on a chamfered element. Use ds-* instead — drop-shadow is composited
        AFTER clip-path and correctly traces the chamfer shape. */
-    .chamfer-sm { clip-path: polygon(5px  0%, calc(100% - 5px)  0%, 100%  5px, 100% calc(100% -  5px), calc(100% -  5px) 100%,  5px 100%, 0% calc(100% -  5px), 0%  5px); }
-    .chamfer    { clip-path: polygon(8px  0%, calc(100% - 8px)  0%, 100%  8px, 100% calc(100% -  8px), calc(100% -  8px) 100%,  8px 100%, 0% calc(100% -  8px), 0%  8px); }
-    .chamfer-lg { clip-path: polygon(14px 0%, calc(100% - 14px) 0%, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0% calc(100% - 14px), 0% 14px); }
+    .chamfer-sm {
+      clip-path: polygon(5px 0%, calc(100% - 5px) 0%, 100% 5px, 100% calc(100% - 5px), calc(100% - 5px) 100%, 5px 100%, 0% calc(100% - 5px), 0% 5px);
+    }
+
+    .chamfer {
+      clip-path: polygon(8px 0%, calc(100% - 8px) 0%, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0% calc(100% - 8px), 0% 8px);
+    }
+
+    .chamfer-lg {
+      clip-path: polygon(14px 0%, calc(100% - 14px) 0%, 100% 14px, 100% calc(100% - 14px), calc(100% - 14px) 100%, 14px 100%, 0% calc(100% - 14px), 0% 14px);
+    }
 
     /* Scrollable thumbnail strip */
-    .gallery-strip { scrollbar-width: thin; scrollbar-color: rgba(var(--brand-600-rgb), 0.5) transparent; }
-    .gallery-strip::-webkit-scrollbar { height: 4px; }
-    .gallery-strip::-webkit-scrollbar-track { background: transparent; }
-    .gallery-strip::-webkit-scrollbar-thumb { background: rgba(var(--brand-600-rgb), 0.5); border-radius: 2px; }
+    .gallery-strip {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(var(--brand-600-rgb), 0.5) transparent;
+    }
+
+    .gallery-strip::-webkit-scrollbar {
+      height: 4px;
+    }
+
+    .gallery-strip::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .gallery-strip::-webkit-scrollbar-thumb {
+      background: rgba(var(--brand-600-rgb), 0.5);
+      border-radius: 2px;
+    }
 
     /* Chamfer-following outlines — references brand tokens above */
-    .ds-outline       { filter: drop-shadow(0 0 0.75px #9ca3af); }
-    .ds-outline-brand { filter: drop-shadow(0 0 0.75px rgba(var(--brand-300-rgb), 1)); }
-    .ds-card          { filter: drop-shadow(0 0 0.75px #d1d5db) drop-shadow(0 2px 6px rgba(0,0,0,0.07)); transition: filter 0.2s; }
-    .ds-card:hover    { filter: drop-shadow(0 0 0.75px #d1d5db) drop-shadow(0 6px 14px rgba(0,0,0,0.12)); }
+    .ds-outline {
+      filter: drop-shadow(0 0 0.75px #9ca3af);
+    }
+
+    .ds-outline-brand {
+      filter: drop-shadow(0 0 0.75px rgba(var(--brand-300-rgb), 1));
+    }
+
+    .ds-card {
+      filter: drop-shadow(0 0 0.75px #d1d5db) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.07));
+      transition: filter 0.2s;
+    }
+
+    .ds-card:hover {
+      filter: drop-shadow(0 0 0.75px #d1d5db) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.12));
+    }
+
     @media (prefers-color-scheme: dark) {
-      .ds-outline       { filter: drop-shadow(0 0 0.75px #4b5563); }
-      .ds-outline-brand { filter: drop-shadow(0 0 0.75px rgba(var(--brand-700-rgb), 1)); }
-      .ds-card          { filter: drop-shadow(0 0 0.75px #374151) drop-shadow(0 2px 6px rgba(0,0,0,0.3)); transition: filter 0.2s; }
-      .ds-card:hover    { filter: drop-shadow(0 0 0.75px #374151) drop-shadow(0 6px 14px rgba(0,0,0,0.4)); }
+      .ds-outline {
+        filter: drop-shadow(0 0 0.75px #4b5563);
+      }
+
+      .ds-outline-brand {
+        filter: drop-shadow(0 0 0.75px rgba(var(--brand-700-rgb), 1));
+      }
+
+      .ds-card {
+        filter: drop-shadow(0 0 0.75px #374151) drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+        transition: filter 0.2s;
+      }
+
+      .ds-card:hover {
+        filter: drop-shadow(0 0 0.75px #374151) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4));
+      }
     }
   </style>
 
   <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
 </head>
+
 <body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
 
-  <nav class="sticky top-0 z-50 bg-white/90 dark:bg-gray-950/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
+  <nav
+    class="sticky top-0 z-50 bg-white/90 dark:bg-gray-950/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 
       <a href="{% url 'index' %}" class="flex items-center gap-2.5">
         <img src="{% static 'logo.svg' %}" alt="OpenPCB logo" class="w-8 h-8">
         <span class="font-bold text-xl tracking-tight">
-          <span class="text-brand-600 dark:text-brand-400">Open</span><span class="text-gray-900 dark:text-white">PCB</span>
+          <span class="text-brand-600 dark:text-brand-400">Open</span><span
+            class="text-gray-900 dark:text-white">PCB</span>
         </span>
       </a>
 
       <div class="flex items-center gap-6">
-        <a href="{% url 'explore' %}" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Explore</a>
+        <a href="{% url 'explore' %}"
+          class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Explore</a>
         {% if user.is_authenticated %}
-          <a href="{% url 'profile' user.username %}" class="flex items-center gap-1.5 hover:underline">
-            <div class="w-6 h-6 bg-brand-100 dark:bg-brand-900 flex items-center justify-center flex-shrink-0 chamfer-sm">
-              <span class="text-brand-700 dark:text-brand-400 text-xs font-semibold leading-none">{{ user.username|slice:":1"|upper }}</span>
-            </div>
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ user.username }}</span>
-          </a>
-          <form method="post" action="{% url 'account_logout' %}" class="inline">
-            {% csrf_token %}
-            <button type="submit" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
-              Log out
-            </button>
-          </form>
-          <a href="{% url 'project_create' %}" class="text-sm font-medium bg-copper-500 hover:bg-copper-600 text-white px-4 py-2 chamfer transition-colors">New project</a>
+        <a href="{% url 'profile' user.username %}" class="flex items-center gap-1.5 hover:underline">
+          <div class="w-6 h-6 bg-brand-100 dark:bg-brand-900 flex items-center justify-center flex-shrink-0 chamfer-sm">
+            <span class="text-brand-700 dark:text-brand-400 text-xs font-semibold leading-none">{{
+              user.username|slice:":1"|upper }}</span>
+          </div>
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ user.username }}</span>
+        </a>
+        <form method="post" action="{% url 'account_logout' %}" class="inline">
+          {% csrf_token %}
+          <button type="submit"
+            class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+            Log out
+          </button>
+        </form>
+        <a href="{% url 'project_create' %}"
+          class="text-sm font-medium bg-copper-500 hover:bg-copper-600 text-white px-4 py-2 chamfer transition-colors">New
+          project</a>
         {% else %}
-          <a href="{% url 'account_login' %}" class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Log in</a>
-          <a href="{% url 'account_signup' %}" class="text-sm font-medium bg-copper-500 hover:bg-copper-600 text-white px-4 py-2 chamfer transition-colors">Sign up</a>
+        <a href="{% url 'account_login' %}"
+          class="text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Log
+          in</a>
+        <a href="{% url 'account_signup' %}"
+          class="text-sm font-medium bg-copper-500 hover:bg-copper-600 text-white px-4 py-2 chamfer transition-colors">Sign
+          up</a>
         {% endif %}
       </div>
 
@@ -178,26 +235,27 @@
             <span class="text-brand-600 dark:text-brand-400">Open</span>PCB
           </p>
           <p class="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
-            A community platform for sharing open-source PCB designs. Early development — we're actively looking for feedback and contributions.
-          </p>
+            A community platform for sharing open-source PCB designs.
         </div>
 
         <div class="sm:text-right">
           <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Built in the open</p>
           <p class="text-sm text-gray-500 dark:text-gray-400">
             Found a bug? Got a suggestion?<br>
-            <a href="https://github.com/dakotawinslow/openpcb/issues" class="text-brand-600 dark:text-brand-400 hover:underline">Open an issue on GitHub</a>
+            <a href="https://github.com/dakotawinslow/openpcb/issues"
+              class="text-brand-600 dark:text-brand-400 hover:underline">Open an issue on GitHub</a>
           </p>
         </div>
 
       </div>
       <div class="border-t border-gray-200 dark:border-gray-800 pt-6">
         <p class="text-center text-sm text-gray-400 dark:text-gray-600">
-          OpenPCB &copy; 2026 &mdash; Open hardware for everyone
+          OpenPCB &copy; 2026 | By Dakota Winslow
         </p>
       </div>
     </div>
   </footer>
 
 </body>
+
 </html>
