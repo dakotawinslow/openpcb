@@ -15,6 +15,7 @@ x-web-common: &web-common
     - db
   env_file:
     - .env
+  restart: unless-stopped
 
 services:
   web:
