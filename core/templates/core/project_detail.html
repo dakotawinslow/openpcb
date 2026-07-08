@@ -22,7 +22,7 @@
       {% if user == project.owner %}
       <div class="flex items-center gap-2 flex-shrink-0">
         <a href="{% url 'project_edit' project.uuid project.slug %}"
-           class="text-sm font-medium px-4 py-2 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 chamfer ds-outline transition-colors">
+           class="text-sm font-medium px-4 py-2 bg-brand-600 text-white hover:bg-brand-700 chamfer transition-colors">
           Edit
         </a>
         <a href="{% url 'project_delete' project.uuid project.slug %}"
