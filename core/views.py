@@ -27,7 +27,7 @@ def index(request):
         Project.objects.filter(is_public=True)
         .select_related('owner')
         .prefetch_related('tags')
-        .order_by('-created_at')[:6]
+        .order_by('-created_at')[:9]
     )
     return render(
         request,
