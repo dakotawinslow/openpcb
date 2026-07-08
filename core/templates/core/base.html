@@ -204,8 +204,7 @@
         {% if user.is_authenticated %}
         <a href="{% url 'profile' user.username %}" class="flex items-center gap-1.5 hover:underline">
           <div class="w-6 h-6 bg-brand-100 dark:bg-brand-900 flex items-center justify-center flex-shrink-0 chamfer-sm">
-            <span class="text-brand-700 dark:text-brand-400 text-xs font-semibold leading-none">{{
-              user.username|slice:":1"|upper }}</span>
+            <span class="text-brand-700 dark:text-brand-400 text-xs font-semibold leading-none">{{ user.username|slice:":1"|upper }}</span>
           </div>
           <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ user.username }}</span>
         </a>
