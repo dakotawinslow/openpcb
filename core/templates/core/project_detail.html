@@ -98,7 +98,7 @@
       {% if project.board_preview_top %}
       <!-- Board viewer -->
       <div id="gerber-viewer"
-           class="relative chamfer-lg overflow-hidden bg-gray-900 ds-outline{% if photos %} hidden{% endif %}"
+           class="relative chamfer-lg overflow-hidden bg-gray-100 dark:bg-gray-900 ds-outline{% if photos %} hidden{% endif %}"
            data-top-url="{% url 'board_preview_svg' project.uuid project.slug 'top' %}"
            data-bottom-url="{% url 'board_preview_svg' project.uuid project.slug 'bottom' %}">
         <div id="gerber-pan-container" class="w-full h-[480px] overflow-hidden" style="cursor:grab">
@@ -148,7 +148,7 @@
         <img src="{{ p.photo.url }}" alt="{{ p.caption|default:project.title }}" class="w-full h-full object-contain bg-gray-100 dark:bg-gray-800">
       </div>
       {% if project.board_preview_top %}
-      <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-800 cursor-pointer transition-opacity ds-outline opacity-50"
+      <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer transition-opacity ds-outline opacity-50"
            onclick="galleryGoto(1)">
         <div class="w-full h-full flex flex-col items-center justify-center text-brand-400">
           <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,7 +167,7 @@
       {% endif %}
       {% endfor %}
       {% if project.board_preview_top and not photos %}
-      <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-800 cursor-pointer transition-opacity ds-outline opacity-100"
+      <div class="gallery-thumb flex-shrink-0 w-24 h-24 chamfer overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer transition-opacity ds-outline opacity-100"
            onclick="galleryGoto(0)">
         <div class="w-full h-full flex flex-col items-center justify-center text-brand-400">
           <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
