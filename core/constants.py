@@ -72,6 +72,10 @@ GERBER_DRILL_EXTENSIONS = {'.drl', '.xln', '.exc'}
 GERBER_DRILL_GBR_NPTH_SUFFIXES = {'-NPTH-DRL', '-NPTH'}
 GERBER_DRILL_GBR_PTH_SUFFIXES = {'-PTH-DRL', '-PTH', '-DRL', '-DRILL'}
 
+# Extensions that may hold Excellon drill data but need content detection to confirm
+# (e.g. Altium exports drill files as .txt)
+GERBER_MAYBE_EXCELLON_EXTENSIONS = {'.txt'}
+
 # KiCad-style: layer identified by filename suffix when extension is generic .gbr
 GERBER_SUFFIX_TO_LAYER = {
     '-F_Cu': ('top', 'copper'),

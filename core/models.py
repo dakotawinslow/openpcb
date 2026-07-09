@@ -16,6 +16,7 @@ from .constants import (
     GERBER_DRILL_GBR_NPTH_SUFFIXES,
     GERBER_DRILL_GBR_PTH_SUFFIXES,
     GERBER_EXTENSION_TO_LAYER,
+    GERBER_MAYBE_EXCELLON_EXTENSIONS,
     GERBER_OUTLINE_EXTENSIONS,
     GERBER_OUTLINE_SUFFIXES,
     GERBER_SUFFIX_TO_LAYER,
@@ -230,11 +231,14 @@ def _try_parse_excellon(content, GerberFile, ExcellonFile):
 
 def _regenerate_board_preview(project):
     """Re-render board preview SVGs from all Gerber files in the project."""
+    from django.db.models import Q
     from gerbonara import ExcellonFile, GerberFile, LayerStack
+    from gerbonara.layers import identify_file
 
-    gerber_files = project.files.filter(
-        file_type__in=[ProjectFile.FileType.GERBER, ProjectFile.FileType.DRILL]
-    )
+    q = Q(file_type__in=[ProjectFile.FileType.GERBER, ProjectFile.FileType.DRILL])
+    for ext in GERBER_MAYBE_EXCELLON_EXTENSIONS:
+        q |= Q(original_filename__iendswith=ext)
+    gerber_files = project.files.filter(q)
     if not gerber_files.exists():
         if project.board_preview_top:
             project.board_preview_top.delete(save=False)
@@ -246,6 +250,7 @@ def _regenerate_board_preview(project):
     graphic_layers = {}
     drill_pth = None
     drill_npth = None
+    extra_drill_layers = []
     for pf in gerber_files:
         name_stem, ext = os.path.splitext(pf.original_filename)
         ext = ext.lower()
@@ -259,10 +264,18 @@ def _regenerate_board_preview(project):
         try:
             if ext in GERBER_DRILL_EXTENSIONS:
                 ef = ExcellonFile.from_string(content)
-                if name_stem.endswith('-NPTH'):
-                    drill_npth = ef
+                if name_stem.upper().endswith('-NPTH'):
+                    drill_npth = ef if drill_npth is None else extra_drill_layers.append(ef)
                 else:
-                    drill_pth = ef
+                    drill_pth = ef if drill_pth is None else extra_drill_layers.append(ef)
+            elif ext in GERBER_MAYBE_EXCELLON_EXTENSIONS:
+                if identify_file(content) == 'excellon':
+                    ef = ExcellonFile.from_string(content)
+                    upper_stem = name_stem.upper()
+                    if 'NONPLATED' in upper_stem or 'NPTH' in upper_stem:
+                        drill_npth = ef if drill_npth is None else extra_drill_layers.append(ef)
+                    else:
+                        drill_pth = ef if drill_pth is None else extra_drill_layers.append(ef)
             elif ext in GERBER_OUTLINE_EXTENSIONS:
                 graphic_layers[('mechanical', 'outline')] = GerberFile.from_string(content)
             elif layer_key := GERBER_EXTENSION_TO_LAYER.get(ext):
@@ -274,11 +287,11 @@ def _regenerate_board_preview(project):
                 elif any(upper_stem.endswith(s) for s in GERBER_DRILL_GBR_NPTH_SUFFIXES):
                     ef = _try_parse_excellon(content, GerberFile, ExcellonFile)
                     if ef is not None:
-                        drill_npth = ef
+                        drill_npth = ef if drill_npth is None else extra_drill_layers.append(ef)
                 elif any(upper_stem.endswith(s) for s in GERBER_DRILL_GBR_PTH_SUFFIXES):
                     ef = _try_parse_excellon(content, GerberFile, ExcellonFile)
                     if ef is not None:
-                        drill_pth = ef
+                        drill_pth = ef if drill_pth is None else extra_drill_layers.append(ef)
                 else:
                     for suffix, layer_key in GERBER_SUFFIX_TO_LAYER.items():
                         if name_stem.endswith(suffix):
@@ -295,6 +308,7 @@ def _regenerate_board_preview(project):
         graphic_layers=graphic_layers,
         drill_pth=drill_pth,
         drill_npth=drill_npth,
+        drill_layers=extra_drill_layers,
     )
 
     for side in ('top', 'bottom'):
