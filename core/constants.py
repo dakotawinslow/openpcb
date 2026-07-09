@@ -66,7 +66,11 @@ GERBER_EXTENSION_TO_LAYER = {
     '.gbp': ('bottom', 'paste'),
 }
 
-GERBER_DRILL_EXTENSIONS = {'.drl', '.xln'}
+GERBER_DRILL_EXTENSIONS = {'.drl', '.xln', '.exc'}
+
+# Filename stems that indicate a .gbr file contains drill data (compared case-insensitively)
+GERBER_DRILL_GBR_NPTH_SUFFIXES = {'-NPTH-DRL', '-NPTH'}
+GERBER_DRILL_GBR_PTH_SUFFIXES = {'-PTH-DRL', '-PTH', '-DRL', '-DRILL'}
 
 # KiCad-style: layer identified by filename suffix when extension is generic .gbr
 GERBER_SUFFIX_TO_LAYER = {

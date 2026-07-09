@@ -1,4 +1,5 @@
 import io
+from unittest.mock import patch
 
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -164,3 +165,110 @@ class BoardPreviewSignalTests(TestCase):
         self.project.refresh_from_db()
         # May or may not generate a preview depending on gerbonara's tolerance,
         # but must not raise an exception.
+
+    def test_drill_file_save_triggers_preview_regeneration(self):
+        # Bug #42: the post_save signal must fire for DRILL type, not just GERBER.
+        drill_file = SimpleUploadedFile(
+            'board-PTH.drl', b'M48\n', content_type='application/octet-stream'
+        )
+        with patch('core.models._regenerate_board_preview') as mock_regen:
+            ProjectFile.objects.create(
+                project=self.project,
+                file=drill_file,
+                original_filename='board-PTH.drl',
+                file_type=ProjectFile.FileType.DRILL,
+                file_size=4,
+            )
+        mock_regen.assert_called_once_with(self.project)
+
+    def test_drill_file_delete_triggers_preview_regeneration(self):
+        # Bug #42: the post_delete signal must also fire for DRILL type.
+        drill_file = SimpleUploadedFile(
+            'board-PTH.drl', b'M48\n', content_type='application/octet-stream'
+        )
+        pf = ProjectFile.objects.create(
+            project=self.project,
+            file=drill_file,
+            original_filename='board-PTH.drl',
+            file_type=ProjectFile.FileType.DRILL,
+            file_size=4,
+        )
+        with patch('core.models._regenerate_board_preview') as mock_regen:
+            pf.delete()
+        mock_regen.assert_called_once_with(self.project)
+
+    def test_drill_file_type_included_in_preview_query(self):
+        # Bug #42 fix: .drl files are stored as FileType.DRILL but must still
+        # trigger board preview generation alongside the copper layer.
+        ProjectFile.objects.create(
+            project=self.project,
+            file=_gerber_file('board.gtl'),
+            original_filename='board.gtl',
+            file_type=ProjectFile.FileType.GERBER,
+            file_size=100,
+        )
+        ProjectFile.objects.create(
+            project=self.project,
+            file=SimpleUploadedFile(
+                'board-PTH.drl',
+                b'M48\nT01C0.800\n%\nT01\nX000000Y000000\nM30\n',
+                content_type='application/octet-stream',
+            ),
+            original_filename='board-PTH.drl',
+            file_type=ProjectFile.FileType.DRILL,
+            file_size=44,
+        )
+
+        self.project.refresh_from_db()
+        self.assertTrue(self.project.board_preview_top)
+
+    def test_gbr_pth_drill_suffix_recognised(self):
+        # Bug #42 fix: KiCad Gerber X2 drill files (-PTH-drl.gbr) must be
+        # parsed as drill data, not silently skipped.
+        ProjectFile.objects.create(
+            project=self.project,
+            file=_gerber_file('board.gtl'),
+            original_filename='board.gtl',
+            file_type=ProjectFile.FileType.GERBER,
+            file_size=100,
+        )
+        ProjectFile.objects.create(
+            project=self.project,
+            file=SimpleUploadedFile(
+                'board-PTH-drl.gbr',
+                b'M48\nT01C0.800\n%\nT01\nX000000Y000000\nM30\n',
+                content_type='application/octet-stream',
+            ),
+            original_filename='board-PTH-drl.gbr',
+            file_type=ProjectFile.FileType.GERBER,
+            file_size=44,
+        )
+
+        self.project.refresh_from_db()
+        # Preview must still be generated — the drill file must not cause a crash
+        # or be silently dropped before the copper layer is rendered.
+        self.assertTrue(self.project.board_preview_top)
+
+    def test_gbr_npth_drill_suffix_recognised(self):
+        # Bug #42 fix: NPTH-drl.gbr files must be routed to drill_npth, not dropped.
+        ProjectFile.objects.create(
+            project=self.project,
+            file=_gerber_file('board.gtl'),
+            original_filename='board.gtl',
+            file_type=ProjectFile.FileType.GERBER,
+            file_size=100,
+        )
+        ProjectFile.objects.create(
+            project=self.project,
+            file=SimpleUploadedFile(
+                'board-NPTH-drl.gbr',
+                b'M48\nT01C0.800\n%\nT01\nX000000Y000000\nM30\n',
+                content_type='application/octet-stream',
+            ),
+            original_filename='board-NPTH-drl.gbr',
+            file_type=ProjectFile.FileType.GERBER,
+            file_size=44,
+        )
+
+        self.project.refresh_from_db()
+        self.assertTrue(self.project.board_preview_top)

@@ -264,10 +264,25 @@
         });
       }
 
+      function applyDrillHoleColor(svgEl) {
+        var bg = getComputedStyle(gerberViewer).backgroundColor;
+        var match = bg.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (!match) return;
+        var hex = '#' + [match[1], match[2], match[3]].map(function (v) {
+          return parseInt(v).toString(16).padStart(2, '0');
+        }).join('');
+        var drillFilter = svgEl.querySelector('#f-drill');
+        if (!drillFilter) return;
+        var floods = drillFilter.querySelectorAll('feFlood');
+        if (floods.length >= 2) floods[1].setAttribute('flood-color', hex);
+      }
+
       function loadSvgSide(side, callback) {
         if (svgCache[side]) {
           gerberContainer.innerHTML = '';
           gerberContainer.appendChild(svgCache[side].cloneNode(true));
+          var liveSvg = gerberContainer.querySelector('svg');
+          if (liveSvg) applyDrillHoleColor(liveSvg);
           if (callback) callback();
           return;
         }
@@ -283,6 +298,8 @@
           svgCache[side] = svg;
           gerberContainer.innerHTML = '';
           gerberContainer.appendChild(svg.cloneNode(true));
+          var liveSvg = gerberContainer.querySelector('svg');
+          if (liveSvg) applyDrillHoleColor(liveSvg);
           if (callback) callback();
         });
       }
@@ -400,6 +417,11 @@
         if (galleryIndex === viewerIndex) {
           window.gerberShowSide('top');
         }
+
+        new MutationObserver(function () {
+          var svgEl = gerberContainer.querySelector('svg');
+          if (svgEl) applyDrillHoleColor(svgEl);
+        }).observe(document.documentElement, { attributeFilter: ['class'] });
       }
     }());
   </script>

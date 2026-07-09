@@ -13,6 +13,8 @@ from PIL import Image, ImageOps
 
 from .constants import (
     GERBER_DRILL_EXTENSIONS,
+    GERBER_DRILL_GBR_NPTH_SUFFIXES,
+    GERBER_DRILL_GBR_PTH_SUFFIXES,
     GERBER_EXTENSION_TO_LAYER,
     GERBER_OUTLINE_EXTENSIONS,
     GERBER_OUTLINE_SUFFIXES,
@@ -113,6 +115,7 @@ class Project(models.Model):
 class ProjectFile(models.Model):
     class FileType(models.TextChoices):
         GERBER = 'Gerber', 'Gerber'
+        DRILL = 'Drill', 'Drill'
         KICAD = 'KiCad', 'KiCad'
         EAGLE = 'Eagle', 'Eagle'
         SCHEMATIC = 'Schematic', 'Schematic'
@@ -206,18 +209,32 @@ def on_photo_delete(sender, instance, **kwargs):
 @receiver(post_delete, sender=ProjectFile)
 def delete_projectfile_from_r2(sender, instance, **kwargs):
     instance.file.delete(save=False)
-    if instance.file_type == ProjectFile.FileType.GERBER:
+    if instance.file_type in (ProjectFile.FileType.GERBER, ProjectFile.FileType.DRILL):
         _regenerate_board_preview(instance.project)
 
 
 # ── Board preview management ─────────────────────────────────────────────────
 
 
+def _try_parse_excellon(content, GerberFile, ExcellonFile):
+    """Parse drill content as ExcellonFile, falling back to converting from Gerber X2 format."""
+    try:
+        return ExcellonFile.from_string(content)
+    except Exception:
+        pass
+    try:
+        return GerberFile.from_string(content).to_excellon(errors='ignore')
+    except Exception:
+        return None
+
+
 def _regenerate_board_preview(project):
     """Re-render board preview SVGs from all Gerber files in the project."""
     from gerbonara import ExcellonFile, GerberFile, LayerStack
 
-    gerber_files = project.files.filter(file_type=ProjectFile.FileType.GERBER)
+    gerber_files = project.files.filter(
+        file_type__in=[ProjectFile.FileType.GERBER, ProjectFile.FileType.DRILL]
+    )
     if not gerber_files.exists():
         if project.board_preview_top:
             project.board_preview_top.delete(save=False)
@@ -251,8 +268,17 @@ def _regenerate_board_preview(project):
             elif layer_key := GERBER_EXTENSION_TO_LAYER.get(ext):
                 graphic_layers[layer_key] = GerberFile.from_string(content)
             elif ext == '.gbr':
+                upper_stem = name_stem.upper()
                 if any(name_stem.endswith(s) for s in GERBER_OUTLINE_SUFFIXES):
                     graphic_layers[('mechanical', 'outline')] = GerberFile.from_string(content)
+                elif any(upper_stem.endswith(s) for s in GERBER_DRILL_GBR_NPTH_SUFFIXES):
+                    ef = _try_parse_excellon(content, GerberFile, ExcellonFile)
+                    if ef is not None:
+                        drill_npth = ef
+                elif any(upper_stem.endswith(s) for s in GERBER_DRILL_GBR_PTH_SUFFIXES):
+                    ef = _try_parse_excellon(content, GerberFile, ExcellonFile)
+                    if ef is not None:
+                        drill_pth = ef
                 else:
                     for suffix, layer_key in GERBER_SUFFIX_TO_LAYER.items():
                         if name_stem.endswith(suffix):
@@ -303,5 +329,5 @@ def _regenerate_board_preview(project):
 
 @receiver(post_save, sender=ProjectFile)
 def regenerate_board_preview_on_file_save(sender, instance, **kwargs):
-    if instance.file_type == ProjectFile.FileType.GERBER:
+    if instance.file_type in (ProjectFile.FileType.GERBER, ProjectFile.FileType.DRILL):
         _regenerate_board_preview(instance.project)
